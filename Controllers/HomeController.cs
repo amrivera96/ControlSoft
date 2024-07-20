@@ -273,6 +273,129 @@ namespace ControlSoft.Controllers
 
             return RedirectToAction("BandejaInconsistenciasJefe");
         }
+
+
+        // Acción para mostrar la vista de registro de actividades
+        // Acción para mostrar la vista de registro de actividades
+        public ActionResult TiposActividades()
+        {
+            List<TiposActividades> actividades = new List<TiposActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosTipoActividades", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            TiposActividades actividad = new TiposActividades
+                            {
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                nombreAct = reader["nombreAct"].ToString(),
+                                descpAct = reader["descpAct"].ToString(),
+                                fechaCreacion = Convert.ToDateTime(reader["fechaCreacion"]),
+                                estadoAct = Convert.ToBoolean(reader["estadoAct"])
+                            };
+
+                            actividades.Add(actividad);
+                        }
+                    }
+                }
+            }
+
+            return View(actividades);
+        }
+
+        // Acción para crear una nueva actividad
+        [HttpPost]
+        public ActionResult CrearActividad(TiposActividades actividad)
+        {
+            if (ModelState.IsValid)
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_CrearTipoActividad", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@nombreAct", actividad.nombreAct);
+                        cmd.Parameters.AddWithValue("@descpAct", actividad.descpAct);
+                        cmd.Parameters.AddWithValue("@fechaCreacion", DateTime.Now);  // Fecha de creación automática
+                        cmd.Parameters.AddWithValue("@estadoAct", actividad.estadoAct);
+
+                        SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        cmd.Parameters.Add(mensajeParam);
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        ViewBag.Mensaje = mensajeParam.Value.ToString();
+                    }
+                }
+            }
+
+            return RedirectToAction("TiposActividades");
+        }
+
+        // Acción para eliminar una actividad
+        [HttpPost]
+        public ActionResult EliminarActividad(int idAct)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_DeleteTipoActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    ViewBag.Mensaje = mensajeParam.Value.ToString();
+                }
+            }
+
+            return RedirectToAction("TiposActividades");
+        }
+
+        // Acción para activar/desactivar una actividad
+        [HttpPost]
+        public ActionResult ActivarDesactivarActividad(int idAct, bool nuevoEstado)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_ActivarDesactivarTipoActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+                    cmd.Parameters.AddWithValue("@nuevoEstado", nuevoEstado);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    ViewBag.Mensaje = mensajeParam.Value.ToString();
+                }
+            }
+
+            return RedirectToAction("TiposActividades");
+        }
+
+
         public ActionResult shared()
         {
             return View();

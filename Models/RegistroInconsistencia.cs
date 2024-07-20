@@ -51,4 +51,15 @@ namespace ControlSoft.Models
     }
 
 
+    public class TiposActividades
+    {
+        public int idAct { get; set; }
+        public string nombreAct { get; set; }
+        public string descpAct { get; set; }
+        public DateTime fechaCreacion { get; set; }
+        public bool estadoAct { get; set; }
+    }
+
+
+
 }

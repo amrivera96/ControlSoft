@@ -1,0 +1,92 @@
+﻿@model IEnumerable<ControlSoft.Models.RegistrarActividadDiariaEmp>
+
+@{
+    ViewBag.Title = "Registro de actividades";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+    <!-- CSS Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CDN Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <!-- CSS Main -->
+    <link rel="stylesheet" href="~/Content/css/styles.css" />
+    <!-- CSS Formularios -->
+    <link rel="stylesheet" href="~/Content/css/estiloFormularios.css" />
+</head>
+<body>
+    <header class="header">
+        <div class="container mt-5">
+            <h2 class="header-title">Registro de actividades</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID activ.</th>
+                            <th>Tipo de actividad</th>
+                            <th>Hora Inicio</th>
+                            <th>Hora Final</th>
+                            <th>Duración (h)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.IdActividad</td>
+                                <td>@item.TipoActividad</td>
+                                <td>@item.HoraInicio.ToString("h:mmtt")</td>
+                                <td>@item.HoraFinal.ToString("h:mmtt")</td>
+                                <td>@item.Duracion</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td>1035</td>
+                            <td>
+                                <select class="form-select">
+                                    <option selected>Seleccione la actividad</option>
+                                    <option value="Inventario">Inventario</option>
+                                    <option value="Reportes">Reportes</option>
+                                    <option value="Otra actividad">Otra actividad</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select">
+                                    <option selected>Hora Inicio</option>
+                                    <option value="8:00am">8:00am</option>
+                                    <option value="10:00am">10:00am</option>
+                                    <option value="1:00pm">1:00pm</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select">
+                                    <option selected>Hora Final</option>
+                                    <option value="10:00am">10:00am</option>
+                                    <option value="12:00pm">12:00pm</option>
+                                    <option value="3:00pm">3:00pm</option>
+                                </select>
+                            </td>
+                            <td>2</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-primary">Añadir actividad</button>
+                <button class="btn btn-secondary">ATRÁS</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- JavaScript Bootstrap Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Content/js/scripts.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+</body>
+</html>
