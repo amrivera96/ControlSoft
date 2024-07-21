@@ -521,7 +521,7 @@ namespace ControlSoft.Controllers
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("sp_LeerRegistroActividadesPorDia", conn))
+                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosRegistroActividades", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     conn.Open();
@@ -530,22 +530,20 @@ namespace ControlSoft.Controllers
                     {
                         while (reader.Read())
                         {
-                            var actividad = new RegistroActividades
+                            RegistroActividades actividad = new RegistroActividades
                             {
                                 idRegAct = Convert.ToInt32(reader["idRegAct"]),
+                                idGesAct = Convert.ToInt32(reader["idGesAct"]),
+                                idAct = Convert.ToInt32(reader["idAct"]),
                                 idEmp = Convert.ToInt32(reader["idEmp"]),
                                 fechaAct = Convert.ToDateTime(reader["fechaAct"]),
-                                horaInicio = TimeSpan.Parse(reader["horaInicio"].ToString()),
-                                horaFinal = TimeSpan.Parse(reader["horaFinal"].ToString()),
-                                duracionAct = TimeSpan.Parse(reader["duracionAct"].ToString()),
+                                horaInicio = (TimeSpan)reader["horaInicio"],
+                                horaFinal = (TimeSpan)reader["horaFinal"],
+                                duracionAct = (TimeSpan)reader["duracionAct"],
                                 estadoReg = Convert.ToBoolean(reader["estadoReg"]),
                                 Actividad = new TiposActividades
                                 {
-                                    idAct = Convert.ToInt32(reader["idAct"]),
-                                    nombreAct = reader["nombreAct"].ToString(),
-                                    descpAct = reader["descpAct"].ToString(),
-                                    fechaCreacion = Convert.ToDateTime(reader["fechaCreacion"]),
-                                    estadoAct = Convert.ToBoolean(reader["estadoAct"])
+                                    nombreAct = reader["nombreAct"].ToString()
                                 }
                             };
 
@@ -555,27 +553,20 @@ namespace ControlSoft.Controllers
                 }
             }
 
-            // Agrupar por empleado y fecha
-            var groupedActivities = actividades
-                .GroupBy(a => new { a.idEmp, a.fechaAct })
-                .Select(g => g.First())
-                .ToList();
-
-            return View(groupedActivities);
+            return View(actividades);
         }
 
-
-
-        // Acción para gestionar una actividad
         [HttpPost]
-        public ActionResult GestionarActividad(int idRegAct, string obserGest, bool estadoGesAct, int idJefe)
+        public ActionResult GestionarActividad(int idGesAct, string obserGest, bool estadoGesAct)
         {
+            int idJefe = 1; // Este valor debería ser dinámico, dependiendo del jefe autenticado
+
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_GestionarActividad", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@idRegAct", idRegAct);
+                    cmd.Parameters.AddWithValue("@idGesAct", idGesAct);
                     cmd.Parameters.AddWithValue("@fechaGesAct", DateTime.Now);
                     cmd.Parameters.AddWithValue("@obserGest", obserGest);
                     cmd.Parameters.AddWithValue("@estadoGesAct", estadoGesAct);

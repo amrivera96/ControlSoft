@@ -64,6 +64,7 @@ namespace ControlSoft.Models
     public class RegistroActividades
     {
         public int idRegAct { get; set; }
+        public int idGesAct { get; set; }
         public int idAct { get; set; }
         public int idEmp { get; set; }
         public DateTime fechaAct { get; set; }
@@ -79,10 +80,9 @@ namespace ControlSoft.Models
     public class GestionActividades
     {
         public int idGesAct { get; set; }
-        public int idRegAct { get; set; }
-        public DateTime fechaGesAct { get; set; }
+        public DateTime? fechaGesAct { get; set; }
         public string obserGest { get; set; }
-        public bool estadoGesAct { get; set; }
+        public bool? estadoGesAct { get; set; }
         public int idJefe { get; set; }
     }
 }
