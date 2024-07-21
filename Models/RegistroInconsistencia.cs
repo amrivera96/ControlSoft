@@ -61,5 +61,19 @@ namespace ControlSoft.Models
     }
 
 
+    public class RegistroActividades
+    {
+        public int idRegAct { get; set; }
+        public int idAct { get; set; }
+        public int idEmp { get; set; }
+        public DateTime fechaAct { get; set; }
+        public TimeSpan horaInicio { get; set; }
+        public TimeSpan horaFinal { get; set; }
+        public TimeSpan duracionAct { get; set; }
+        public bool estadoReg { get; set; }
+
+        // Propiedad de navegación
+        public TiposActividades Actividad { get; set; }
+    }
 
 }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ControlSoft.Models.RegistrarActividadDiariaEmp>
+﻿@model ControlSoft.Controllers.RegistrarActividadViewModel
 
 @{
     ViewBag.Title = "Registro de actividades";
@@ -28,58 +28,54 @@
                 <table class="table table-bordered">
                     <thead class="table-light">
                         <tr>
-                            <th>ID activ.</th>
-                            <th>Tipo de actividad</th>
+                            <th>ID Registro</th>
+                            <th>Tipo actividad</th>
                             <th>Hora Inicio</th>
                             <th>Hora Final</th>
                             <th>Duración (h)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.RegistroActividades)
                         {
                             <tr>
-                                <td>@item.IdActividad</td>
-                                <td>@item.TipoActividad</td>
-                                <td>@item.HoraInicio.ToString("h:mmtt")</td>
-                                <td>@item.HoraFinal.ToString("h:mmtt")</td>
-                                <td>@item.Duracion</td>
+                                <td>@item.idRegAct</td>
+                                <td>@item.Actividad.nombreAct</td>
+                                <td>@item.horaInicio.ToString("hh\\:mm")</td>
+                                <td>@item.horaFinal.ToString("hh\\:mm")</td>
+                                <td>@item.duracionAct.ToString("hh\\:mm")</td>
                             </tr>
                         }
                         <tr>
-                            <td>1035</td>
-                            <td>
-                                <select class="form-select">
-                                    <option selected>Seleccione la actividad</option>
-                                    <option value="Inventario">Inventario</option>
-                                    <option value="Reportes">Reportes</option>
-                                    <option value="Otra actividad">Otra actividad</option>
-                                </select>
-                            </td>
-                            <td>
-                                <select class="form-select">
-                                    <option selected>Hora Inicio</option>
-                                    <option value="8:00am">8:00am</option>
-                                    <option value="10:00am">10:00am</option>
-                                    <option value="1:00pm">1:00pm</option>
-                                </select>
-                            </td>
-                            <td>
-                                <select class="form-select">
-                                    <option selected>Hora Final</option>
-                                    <option value="10:00am">10:00am</option>
-                                    <option value="12:00pm">12:00pm</option>
-                                    <option value="3:00pm">3:00pm</option>
-                                </select>
-                            </td>
-                            <td>2</td>
+                            @using (Html.BeginForm("CrearRegistroActividad", "Home", FormMethod.Post))
+                            {
+                                <td>Nueva</td>
+                                <td>
+                                    <select class="form-select" name="idAct" required>
+                                        <option value="" selected>Seleccione la actividad</option>
+                                        @foreach (var actividad in Model.TiposActividades)
+                                        {
+                                            <option value="@actividad.idAct">@actividad.nombreAct</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="time" name="horaInicio" class="form-control" required />
+                                </td>
+                                <td>
+                                    <input type="time" name="horaFinal" class="form-control" required />
+                                </td>
+                                <td>
+                                    <input type="hidden" name="idEmp" value="1" /> <!-- Asume que el ID del empleado es 1 -->
+                                    <button type="submit" class="btn btn-primary">Añadir actividad</button>
+                                </td>
+                            }
                         </tr>
                     </tbody>
                 </table>
             </div>
             <div class="d-flex justify-content-between mt-3">
-                <button class="btn btn-primary">Añadir actividad</button>
-                <button class="btn btn-secondary">ATRÁS</button>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">ATRÁS</a>
             </div>
         </div>
     </header>

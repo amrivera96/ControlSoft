@@ -206,7 +206,7 @@ namespace ControlSoft.Controllers
             return RedirectToAction("HistorialInconsistenciasEmp");
         }
 
-
+        // Acción para leer las inconsistencias de los empleados
         public ActionResult BandejaInconsistenciasJefe()
         {
             List<RegistroInconsistencia> inconsistencias = new List<RegistroInconsistencia>();
@@ -251,6 +251,7 @@ namespace ControlSoft.Controllers
             return View(inconsistencias);
         }
 
+        // Acción para gestionar las inconsistencias de los empleados
         [HttpPost]
         public ActionResult GestionInconsistenciasJefe(int idInconsistencia, bool estadoInconsistencia, string observacionGestion)
         {
@@ -274,8 +275,6 @@ namespace ControlSoft.Controllers
             return RedirectToAction("BandejaInconsistenciasJefe");
         }
 
-
-        // Acción para mostrar la vista de registro de actividades
         // Acción para mostrar la vista de registro de actividades
         public ActionResult TiposActividades()
         {
@@ -395,6 +394,125 @@ namespace ControlSoft.Controllers
             return RedirectToAction("TiposActividades");
         }
 
+        // Acción para mostrar la vista de registro de actividades
+        public ActionResult RegistrarActividadDiariaEmp()
+        {
+            var viewModel = new RegistrarActividadViewModel
+            {
+                TiposActividades = ObtenerTiposActividades(),
+                RegistroActividades = ObtenerRegistroActividades()
+            };
+
+            return View(viewModel);
+        }
+
+        private List<TiposActividades> ObtenerTiposActividades()
+        {
+            List<TiposActividades> actividades = new List<TiposActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosTipoActividades", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            TiposActividades actividad = new TiposActividades
+                            {
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                nombreAct = reader["nombreAct"].ToString(),
+                                descpAct = reader["descpAct"].ToString(),
+                                fechaCreacion = Convert.ToDateTime(reader["fechaCreacion"]),
+                                estadoAct = Convert.ToBoolean(reader["estadoAct"])
+                            };
+
+                            actividades.Add(actividad);
+                        }
+                    }
+                }
+            }
+
+            return actividades;
+        }
+
+        private List<RegistroActividades> ObtenerRegistroActividades()
+        {
+            List<RegistroActividades> registroActividades = new List<RegistroActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosRegistroActividades", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            RegistroActividades registro = new RegistroActividades
+                            {
+                                idRegAct = Convert.ToInt32(reader["idRegAct"]),
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                idEmp = Convert.ToInt32(reader["idEmp"]),
+                                fechaAct = Convert.ToDateTime(reader["fechaAct"]),
+                                horaInicio = (TimeSpan)reader["horaInicio"],
+                                horaFinal = (TimeSpan)reader["horaFinal"],
+                                duracionAct = (TimeSpan)reader["duracionAct"],
+                                estadoReg = Convert.ToBoolean(reader["estadoReg"]),
+                                Actividad = new TiposActividades
+                                {
+                                    idAct = Convert.ToInt32(reader["idAct"]),
+                                    nombreAct = reader["nombreAct"].ToString() // Asegúrate de que este campo existe en la consulta SQL
+                                }
+                            };
+
+                            registroActividades.Add(registro);
+                        }
+                    }
+                }
+            }
+
+            return registroActividades;
+        }
+
+        // Acción para crear un nuevo registro de actividad
+        [HttpPost]
+        public ActionResult CrearRegistroActividad(int idAct, int idEmp, TimeSpan horaInicio, TimeSpan horaFinal)
+        {
+            DateTime fechaAct = DateTime.Now.Date; // Establecer la fecha actual
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_CrearRegistroActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+                    cmd.Parameters.AddWithValue("@idEmp", idEmp);
+                    cmd.Parameters.AddWithValue("@fechaAct", fechaAct);
+                    cmd.Parameters.AddWithValue("@horaInicio", horaInicio);
+                    cmd.Parameters.AddWithValue("@horaFinal", horaFinal);
+                    cmd.Parameters.AddWithValue("@estadoReg", 0);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    ViewBag.Mensaje = mensajeParam.Value.ToString();
+                }
+            }
+
+            return RedirectToAction("RegistrarActividadDiariaEmp");
+        }
+
 
         public ActionResult shared()
         {
@@ -447,5 +565,11 @@ namespace ControlSoft.Controllers
             return View();
         }
 
+    }
+
+    public class RegistrarActividadViewModel
+    {
+        public List<TiposActividades> TiposActividades { get; set; }
+        public List<RegistroActividades> RegistroActividades { get; set; }
     }
 }
