@@ -76,4 +76,13 @@ namespace ControlSoft.Models
         public TiposActividades Actividad { get; set; }
     }
 
+    public class GestionActividades
+    {
+        public int idGesAct { get; set; }
+        public int idRegAct { get; set; }
+        public DateTime fechaGesAct { get; set; }
+        public string obserGest { get; set; }
+        public bool estadoGesAct { get; set; }
+        public int idJefe { get; set; }
+    }
 }

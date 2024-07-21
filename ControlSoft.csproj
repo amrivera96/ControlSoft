@@ -216,6 +216,7 @@
     <Content Include="Views\Home\BandejaInconsistenciasJefe.cshtml" />
     <Content Include="Views\Home\RegistrarActividadDiariaEmp.cshtml" />
     <Content Include="Views\Home\TiposActividades.cshtml" />
+    <Content Include="Views\Home\BandejaActividadesJefe.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

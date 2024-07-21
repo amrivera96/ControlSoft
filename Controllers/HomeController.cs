@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using ControlSoft.Models;
@@ -513,6 +514,80 @@ namespace ControlSoft.Controllers
             return RedirectToAction("RegistrarActividadDiariaEmp");
         }
 
+
+        public ActionResult BandejaActividadesJefe()
+        {
+            List<RegistroActividades> actividades = new List<RegistroActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerRegistroActividadesPorDia", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var actividad = new RegistroActividades
+                            {
+                                idRegAct = Convert.ToInt32(reader["idRegAct"]),
+                                idEmp = Convert.ToInt32(reader["idEmp"]),
+                                fechaAct = Convert.ToDateTime(reader["fechaAct"]),
+                                horaInicio = TimeSpan.Parse(reader["horaInicio"].ToString()),
+                                horaFinal = TimeSpan.Parse(reader["horaFinal"].ToString()),
+                                duracionAct = TimeSpan.Parse(reader["duracionAct"].ToString()),
+                                estadoReg = Convert.ToBoolean(reader["estadoReg"]),
+                                Actividad = new TiposActividades
+                                {
+                                    idAct = Convert.ToInt32(reader["idAct"]),
+                                    nombreAct = reader["nombreAct"].ToString(),
+                                    descpAct = reader["descpAct"].ToString(),
+                                    fechaCreacion = Convert.ToDateTime(reader["fechaCreacion"]),
+                                    estadoAct = Convert.ToBoolean(reader["estadoAct"])
+                                }
+                            };
+
+                            actividades.Add(actividad);
+                        }
+                    }
+                }
+            }
+
+            // Agrupar por empleado y fecha
+            var groupedActivities = actividades
+                .GroupBy(a => new { a.idEmp, a.fechaAct })
+                .Select(g => g.First())
+                .ToList();
+
+            return View(groupedActivities);
+        }
+
+
+
+        // Acción para gestionar una actividad
+        [HttpPost]
+        public ActionResult GestionarActividad(int idRegAct, string obserGest, bool estadoGesAct, int idJefe)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_GestionarActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idRegAct", idRegAct);
+                    cmd.Parameters.AddWithValue("@fechaGesAct", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@obserGest", obserGest);
+                    cmd.Parameters.AddWithValue("@estadoGesAct", estadoGesAct);
+                    cmd.Parameters.AddWithValue("@idJefe", idJefe);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToAction("BandejaActividadesJefe");
+        }
 
         public ActionResult shared()
         {
