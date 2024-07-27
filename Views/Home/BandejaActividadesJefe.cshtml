@@ -105,7 +105,7 @@
                         <form action="@Url.Action("GestionarActividad", "Home")" method="post">
                             @Html.AntiForgeryToken()
                             <input type="hidden" id="idGesAct" name="idGesAct" value="@firstItem.idGesAct" />
-                            <input type="hidden" id="idJefe" name="idJefe" value="1" />
+                            <input type="hidden" id="idJefe" name="idJefe" value="@Session["idEmpleado"]" />
                             <div class="form-group mb-3">
                                 <label for="observacion">Agregar observación:</label>
                                 <textarea class="form-control" id="observacion" name="obserGest" rows="3"></textarea>

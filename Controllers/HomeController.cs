@@ -428,9 +428,15 @@ namespace ControlSoft.Controllers
 
                         conn.Open();
                         cmd.ExecuteNonQuery();
-                        ViewBag.Mensaje = mensajeParam.Value.ToString();
+                        TempData["Mensaje"] = mensajeParam.Value.ToString();
+                        TempData["MensajeTipo"] = "exito"; // Mensaje de éxito
                     }
                 }
+            }
+            else
+            {
+                TempData["Mensaje"] = "Error: Datos inválidos.";
+                TempData["MensajeTipo"] = "error"; // Mensaje de error
             }
 
             return RedirectToAction("TiposActividades");
@@ -455,7 +461,8 @@ namespace ControlSoft.Controllers
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    ViewBag.Mensaje = mensajeParam.Value.ToString();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
+                    TempData["MensajeTipo"] = "exito"; // Mensaje de éxito
                 }
             }
 
@@ -482,25 +489,31 @@ namespace ControlSoft.Controllers
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    ViewBag.Mensaje = mensajeParam.Value.ToString();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
+                    TempData["MensajeTipo"] = "exito"; // Mensaje de éxito
                 }
             }
 
             return RedirectToAction("TiposActividades");
         }
 
+
         // Acción para mostrar la vista de registro de actividades
         public ActionResult RegistrarActividadDiariaEmp()
         {
+            int idEmpleado = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301230123;
+
             var viewModel = new RegistrarActividadViewModel
             {
                 TiposActividades = ObtenerTiposActividades(),
-                RegistroActividades = ObtenerRegistroActividades()
+                RegistroActividades = ObtenerRegistroActividades(),
+                IdEmpleado = idEmpleado
             };
 
             return View(viewModel);
         }
 
+        //Metodo para obtener lista de actividades por hacer
         private List<TiposActividades> ObtenerTiposActividades()
         {
             List<TiposActividades> actividades = new List<TiposActividades>();
@@ -533,7 +546,45 @@ namespace ControlSoft.Controllers
 
             return actividades;
         }
-        
+
+        // Acción para crear un nuevo registro de actividad
+        [HttpPost]
+        public ActionResult CrearRegistroActividad(int idAct, TimeSpan horaInicio, TimeSpan horaFinal)
+        {
+            int idEmp = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301230123;
+            DateTime fechaAct = DateTime.Now.Date; // Establecer la fecha actual
+            string mensaje = string.Empty;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_CrearRegistroActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+                    cmd.Parameters.AddWithValue("@idEmp", idEmp);
+                    cmd.Parameters.AddWithValue("@fechaAct", fechaAct);
+                    cmd.Parameters.AddWithValue("@horaInicio", horaInicio);
+                    cmd.Parameters.AddWithValue("@horaFinal", horaFinal);
+                    cmd.Parameters.AddWithValue("@estadoReg", 0);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    mensaje = mensajeParam.Value.ToString();
+                }
+            }
+
+            TempData["Mensaje"] = mensaje; // Usar TempData para pasar el mensaje a la vista
+            return RedirectToAction("RegistrarActividadDiariaEmp");
+        }
+
+
+
         //Metodo para obtener el registro de las actividades
         private List<RegistroActividades> ObtenerRegistroActividades()
         {
@@ -576,49 +627,19 @@ namespace ControlSoft.Controllers
             return registroActividades;
         }
 
-        // Acción para crear un nuevo registro de actividad
-        [HttpPost]
-        public ActionResult CrearRegistroActividad(int idAct, int idEmp, TimeSpan horaInicio, TimeSpan horaFinal)
-        {
-            DateTime fechaAct = DateTime.Now.Date; // Establecer la fecha actual
-
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("sp_CrearRegistroActividad", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@idAct", idAct);
-                    cmd.Parameters.AddWithValue("@idEmp", idEmp);
-                    cmd.Parameters.AddWithValue("@fechaAct", fechaAct);
-                    cmd.Parameters.AddWithValue("@horaInicio", horaInicio);
-                    cmd.Parameters.AddWithValue("@horaFinal", horaFinal);
-                    cmd.Parameters.AddWithValue("@estadoReg", 0);
-
-                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
-                    {
-                        Direction = ParameterDirection.Output
-                    };
-                    cmd.Parameters.Add(mensajeParam);
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    ViewBag.Mensaje = mensajeParam.Value.ToString();
-                }
-            }
-
-            return RedirectToAction("RegistrarActividadDiariaEmp");
-        }
 
         //Mostrar bandeja de actividades del jefe
         public ActionResult BandejaActividadesJefe()
         {
+            int idJefe = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301240124;
             List<RegistroActividades> actividades = new List<RegistroActividades>();
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosRegistroActividades", conn))
+                using (SqlCommand cmd = new SqlCommand("sp_LeerRegistroActividadesJefe", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idJefe", idJefe);
                     conn.Open();
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -651,12 +672,11 @@ namespace ControlSoft.Controllers
             return View(actividades);
         }
 
-
         //Pantalla para gestionar las actividades
         [HttpPost]
         public ActionResult GestionarActividad(int idGesAct, string obserGest, bool estadoGesAct)
         {
-            int idJefe = 1; // Este valor debería ser dinámico, dependiendo del jefe autenticado
+            int idJefe = 301240124; // Este valor debería ser dinámico, dependiendo del jefe autenticado
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
@@ -676,6 +696,8 @@ namespace ControlSoft.Controllers
 
             return RedirectToAction("BandejaActividadesJefe");
         }
+
+
 
         //Pantalla para monitorear el rendimiento del empleado en vista jefe
         public ActionResult MonitoreoRendimientoJefe()
@@ -968,9 +990,4 @@ namespace ControlSoft.Controllers
 
     }
 
-    public class RegistrarActividadViewModel
-    {
-        public List<TiposActividades> TiposActividades { get; set; }
-        public List<RegistroActividades> RegistroActividades { get; set; }
-    }
 }

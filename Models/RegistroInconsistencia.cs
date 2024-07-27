@@ -64,6 +64,13 @@ namespace ControlSoft.Models
     }
 
 
+    public class RegistrarActividadViewModel
+    {
+        public List<TiposActividades> TiposActividades { get; set; }
+        public List<RegistroActividades> RegistroActividades { get; set; }
+        public int IdEmpleado { get; set; }
+    }
+
     public class RegistroActividades
     {
         public int idRegAct { get; set; }

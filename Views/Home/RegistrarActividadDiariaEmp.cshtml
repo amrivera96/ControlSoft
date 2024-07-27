@@ -1,4 +1,4 @@
-﻿@model ControlSoft.Controllers.RegistrarActividadViewModel
+﻿@model ControlSoft.Models.RegistrarActividadViewModel
 
 @{
     ViewBag.Title = "Registro de actividades";
@@ -70,6 +70,15 @@
                 <div class="col-md-8 text-dark pt-5">
                     <div class="container position-relative mt-5">
                         <h2 class="header-title">Registro de actividades</h2>
+
+                        <!-- Mostrar mensaje de éxito -->
+                        @if (TempData["Mensaje"] != null)
+                        {
+                            <div class="alert alert-success">
+                                @TempData["Mensaje"]
+                            </div>
+                        }
+
                         <div class="table-responsive">
                             <table class="table table-bordered">
                                 <thead class="table-light">
@@ -112,7 +121,7 @@
                                                 <input type="time" name="horaFinal" class="form-control" required />
                                             </td>
                                             <td>
-                                                <input type="hidden" name="idEmp" value="1" /> <!-- Asume que el ID del empleado es 1 -->
+                                                <input type="hidden" name="idEmp" value="@Model.IdEmpleado" />
                                                 <button type="submit" class="btn btn-primary">Añadir actividad</button>
                                             </td>
                                         }

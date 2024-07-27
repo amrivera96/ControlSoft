@@ -85,9 +85,10 @@
                             </div>
                         }
 
-                        @if (ViewBag.Mensaje != null)
+                        @if (TempData["Mensaje"] != null)
                         {
-                            <div class="alert alert-info">@ViewBag.Mensaje</div>
+                            var mensajeTipo = TempData["MensajeTipo"] != null && TempData["MensajeTipo"].ToString() == "exito" ? "alert-success" : "alert-danger";
+                            <div class="alert @mensajeTipo">@TempData["Mensaje"]</div>
                         }
 
                         <div class="table-responsive table-container">
