@@ -1,5 +1,7 @@
+@model ControlSoft.Models.LoginViewModel
+
 @{
-    ViewBag.Title = "login";
+    ViewBag.Title = "Login";
     Layout = null;
 }
 <!DOCTYPE html>
@@ -60,24 +62,32 @@
             <div class="row align-items-center justify-content-center h-100 mt-custom">
                 <div class="col-md-6">
                     <!-- Imagen -->
-                    <img src="~/Content/images/img-1-sec-1.png" class="img-fluid" alt="Descripci�n de la imagen">
+                    <img src="~/Content/images/img-1-sec-1.png" class="img-fluid" alt="Descripcion de la imagen">
                 </div>
                 <div class="col-md-6 text-dark pt-5">
                     <!-- Titulo -->
                     <div class="position-relative" style="top: -50px;">
-                        <form class="login-form p-4 rounded bg-white">
-                            <!--<h2 class="text-uppercase mb-4">Login</h2>-->
+                        @if (ViewBag.Message != null)
+                        {
+                            <div class="alert alert-@ViewBag.AlertType alert-dismissible fade show" role="alert">
+                                @ViewBag.Message
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+                        <form class="login-form p-4 rounded bg-white" action="@Url.Action("Login", "Home")" method="post" novalidate>
+
+                            @Html.AntiForgeryToken()
                             <h1 class="text-capitalize text-center">
                                 <strong class="text-bold text-dark">Bienvenido(a)</strong>
                             </h1>
-                            <div class="form-group">
+                            <div class="form-group position-relative">
                                 <label for="usuario">Usuario</label>
-                                <input type="text" class="form-control" id="usuario" aria-describedby="usuarioHelp" placeholder="Usuario">
+                                <input type="text" class="form-control" id="usuario" name="Usuario" aria-describedby="usuarioHelp" placeholder="Usuario">
                             </div>
                             <div class="form-group position-relative">
-                                <label for="password">Contrase�a</label>
+                                <label for="password">Contraseña</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="password" placeholder="Contrase�a">
+                                    <input type="password" class="form-control" id="password" name="Contraseña" placeholder="Contraseña">
                                     <div class="input-group-append" style="align-items: center;">
                                         <span class="input-group-text toggle-password" style="height: 100%;">
                                             <i class="far fa-eye-slash" id="togglePassword" style="cursor: pointer;"></i>
@@ -85,16 +95,14 @@
                                     </div>
                                 </div>
                             </div>
-
-
-
-
                             <div class="form-group d-flex justify-content-end">
-                                <a href="#" class="text-decoration-none">Restablecer contrase�a</a>
+                                <a href="#" class="text-decoration-none">Restablecer contraseña</a>
                             </div>
-                            <button type="submit" class="btn  btn-custom-color">Ingresar</button>
-
+                            <div class="col-12 text-center">
+                                <button class="btn btn-custom-color w-100" type="submit">Ingresar</button>
+                            </div>
                         </form>
+
                     </div>
                 </div>
 
@@ -103,12 +111,13 @@
         <img src="~/Content/images/cut-header.svg" alt="">
     </header>
 
-
+    
 
     <!-- JavaScript Bootstrap Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/Content/js/scripts.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 
 </body>
 </html>
+

@@ -1,6 +1,11 @@
+@model ControlSoft.Models.RegistroEmpleadoViewModel
+
 @{
     ViewBag.Title = "registroEmpleado";
     Layout = null;
+
+
+
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -21,17 +26,17 @@
     <header class="header">
         <div class="container vh-50">
             <!-- Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light d-flex text-dark align-items-center">
+            <nav class="navbar navbar-expand-lg navbar-light text-dark align-items-center">
                 <!-- Logo -->
                 <a class="navbar-brand" href="#">
                     <img src="~/Content/images/logo.svg" alt="Logo" class="img-logo" style="width: 50px;">
                 </a>
-                <!-- Bot�n de colapso -->
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <!-- Botón de colapso -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <!-- Men� -->
-                <div class="collapse navbar-collapse d-flex justify-content-center flex-grow-1" id="navbarNav">
+                <!-- Menú -->
+                <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
                             <a class="nav-link" href="#">Home</a>
@@ -56,83 +61,126 @@
                     </ul>
                 </div>
             </nav>
+
             <!-- Contenido principal -->
             <div class="row align-items-center justify-content-center h-100 mt-custom">
                 <div class="col-md-6">
                     <!-- Imagen -->
-                    <img src="~/Content/images/[removal.ai]_898d7477-a899-4639-8e9e-a35e3f9bdf15-imga.png" class="img-fluid" alt="Descripci�n de la imagen">
+                    <img src="~/Content/images/[removal.ai]_898d7477-a899-4639-8e9e-a35e3f9bdf15-imga.png" class="img-fluid" alt="Descripción de la imagen">
                 </div>
                 <div class="col-md-6 text-dark pt-5">
-                    <!-- T�tulo -->
+                    
                     <div class="position-relative mt-5" style="top: -50px; left: -50px">
-                        <form class="login-form needs-validation rounded p-4 rounded bg-white" novalidate>
+                        <!-- Título -->
+                        @if (ViewBag.Mensaje != null)
+                        {
+                            <div class="alert alert-@ViewBag.AlertType alert-dismissible fade show" role="alert">
+                                @ViewBag.Mensaje
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+
+
+
+
+                        <form class="login-form needs-validation rounded p-4  bg-white custom-border" action="@Url.Action("registroEmpleado", "Home")" method="post" novalidate>
+                            @Html.AntiForgeryToken()
+
                             <h1 class="text-capitalize text-center">
                                 <strong class="text-bold text-dark">Registro Empleados</strong>
                             </h1>
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="nombreCompleto" class="form-label">Nombre Completo</label>
-                                    <input type="text" class="form-control bg-light rounded" id="nombreCompleto" placeholder="Nombre Completo" required>
+                                    <input type="text" class="form-control bg-light rounded" id="nombreCompleto" name="NombreCompleto" placeholder="Nombre Completo" required>
                                     <div class="invalid-feedback">
                                         Por favor, ingrese su nombre completo.
                                     </div>
+                                    @Html.ValidationMessageFor(m => m.NombreCompleto)
                                 </div>
                                 <div class="col-md-6">
                                     <label for="apellidosCompletos" class="form-label">Apellidos Completos</label>
-                                    <input type="text" class="form-control bg-light rounded" id="apellidosCompletos" placeholder="Apellidos Completos" required>
+                                    <input type="text" class="form-control bg-light rounded" id="apellidosCompletos" name="ApellidosCompletos" placeholder="Apellidos Completos" required>
                                     <div class="invalid-feedback">
                                         Por favor, ingrese sus apellidos completos.
                                     </div>
+                                    @Html.ValidationMessageFor(m => m.ApellidosCompletos)
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="cedula" class="form-label">C�dula</label>
-                                    <input type="text" class="form-control bg-light rounded" id="cedula" placeholder="C�dula" required>
+                                    <label for="cedula" class="form-label">Cédula</label>
+                                    <input type="text" class="form-control bg-light rounded" id="idEmpleado" name="idEmpleado" placeholder="Cédula" required>
                                     <div class="invalid-feedback">
-                                        Por favor, ingrese su c�dula.
+                                        Por favor, ingrese su cédula.
                                     </div>
+                                    @Html.ValidationMessageFor(m => m.idEmpleado)
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="correoElectronico" class="form-label">Correo Electr�nico</label>
-                                    <input type="email" class="form-control bg-light rounded" id="correoElectronico" placeholder="Correo Electr�nico" required>
+                                    <label for="correoElectronico" class="form-label">Correo Electrónico</label>
+                                    <input type="email" class="form-control bg-light rounded" id="correoElectronico" name="CorreoElectronico" placeholder="Correo Electrónico" required>
                                     <div class="invalid-feedback">
-                                        Por favor, ingrese un correo electr�nico v�lido.
+                                        Por favor, ingrese un correo electrónico válido.
                                     </div>
+                                    @Html.ValidationMessageFor(m => m.CorreoElectronico)
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="telefono" class="form-label">Tel�fono</label>
-                                    <input type="tel" class="form-control bg-light rounded" id="telefono" placeholder="Tel�fono" required>
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="tel" class="form-control bg-light rounded" id="telefono" name="Telefono" placeholder="Teléfono" required>
                                     <div class="invalid-feedback">
-                                        Por favor, ingrese su tel�fono.
+                                        Por favor, ingrese su teléfono.
                                     </div>
+                                    @Html.ValidationMessageFor(m => m.Telefono)
                                 </div>
                                 <div class="col-md-6">
                                     <label for="fechaIngreso" class="form-label">Fecha de Ingreso</label>
-                                    <input type="date" class="form-control bg-light rounded" id="fechaIngreso" required>
+                                    <input type="date" class="form-control bg-light rounded" id="fechaIngreso" name="FechaIngreso" required>
                                     <div class="invalid-feedback">
                                         Por favor, ingrese su fecha de ingreso.
                                     </div>
+                                    @Html.ValidationMessageFor(m => m.FechaIngreso)
                                 </div>
-                                <div class="col-md-3 position-relative w-100">
-                                    <label for="validationTooltip04" class="form-label">Puestos</label>
-                                    <select class="form-select w-100 bg-light rounded" id="validationTooltip04" required>
+                                <div class="col-md-6">
+                                    <label for="validationTooltip01" class="form-label">Puestos</label>
+                                    <select class="form-select w-100 bg-light rounded" id="validationTooltip01" name="nombrePuesto" required>
                                         <option selected disabled value="">Asignar Puesto...</option>
-                                        <option>...</option>
+                                        @if (Model.Puestos != null && Model.Puestos.Any())
+                                        {
+                                            foreach (var puesto in Model.Puestos)
+                                            {
+                                                <option value="@puesto.nombrePuesto">@puesto.nombrePuesto</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option value="">No hay puestos disponibles</option>
+                                        }
                                     </select>
                                     <div class="invalid-tooltip">
                                         Seleccione un Puesto.
                                     </div>
+                                    @Html.ValidationMessageFor(m => m.nombrePuesto)
                                 </div>
-                                <!--<div class="col-md-3 position-relative w-100">
-                                  <label for="validationTooltip04" class="form-label">Roles</label>
-                                  <select class="form-select w-100 bg-light rounded" id="validationTooltip04" required>
-                                    <option selected disabled value="">Asignar Rol...</option>
-                                    <option>...</option>
-                                  </select>
-                                  <div class="invalid-tooltip">
-                                    Seleccione un Rol.
-                                  </div>
-                                </div>-->
 
+                                <div class="col-md-6">
+                                    <label for="validationTooltip02" class="form-label">Roles</label>
+                                    <select class="form-select w-100 bg-light rounded" id="validationTooltip02" name="nombreRol" required>
+                                        <option selected disabled value="">Asignar Rol...</option>
+                                        @if (Model.Roles != null && Model.Roles.Any())
+                                        {
+                                            foreach (var rol in Model.Roles)
+                                            {
+                                                <option value="@rol.nombreRol">@rol.nombreRol</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option value="">No hay roles disponibles</option>
+                                        }
+                                    </select>
+                                    <div class="invalid-tooltip">
+                                        Seleccione un Rol.
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.nombreRol)
+                                </div>
                                 <div class="col-12 text-center">
                                     <button class="btn btn-custom-color w-100" type="submit">Registrar Empleado</button>
                                 </div>
@@ -142,32 +190,32 @@
                 </div>
             </div>
         </div>
-        <img src="~/Content/images/cut-header.svg" alt="">
+        <img src="~/Content/images/cut-header.svg" alt="imagen">
     </header>
     <!-- JavaScript Bootstrap Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/Content/js/scripts.js"></script>
     <script>
-    // Bootstrap validation script
-    (function () {
-      'use strict'
+        // Bootstrap validation script
+        (function () {
+            'use strict'
 
-      // Fetch all the forms we want to apply custom Bootstrap validation styles to
-      var forms = document.querySelectorAll('.needs-validation')
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
 
-      // Loop over them and prevent submission
-      Array.prototype.slice.call(forms)
-        .forEach(function (form) {
-          form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-              event.preventDefault()
-              event.stopPropagation()
-            }
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
 
-            form.classList.add('was-validated')
-          }, false)
-        })
-    })()
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
     </script>
 </body>
 </html>

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using ControlSoft.Models;
@@ -13,6 +15,25 @@ namespace ControlSoft.Controllers
     public class HomeController : Controller
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ControlSoftCrDbContext"].ConnectionString;
+
+        public ActionResult TestDatabaseConnection()
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    return Content("Conexión a la base de datos exitosa.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Registra el error y muestra un mensaje amigable
+                System.Diagnostics.Debug.WriteLine("Error de conexión a la base de datos: " + ex.Message);
+                return Content("Error de conexión a la base de datos: " + ex.Message);
+            }
+        }
+
 
 
         // Acción para mostrar la vista de tipos de inconsistencias
@@ -273,6 +294,9 @@ namespace ControlSoft.Controllers
 
             return RedirectToAction("BandejaInconsistenciasJefe");
         }
+
+            
+
         public ActionResult shared()
         {
             return View();
@@ -314,15 +338,307 @@ namespace ControlSoft.Controllers
             return View();
         }
 
+        /*public ActionResult registroEmpleado()
+        {
+            List<Puesto> puestos = new List<Puesto>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_LeerTodosPuestos", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        conn.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Puesto puesto = new Puesto
+                                {
+                                    idPuesto = Convert.ToInt32(reader["idPuesto"]),
+                                    nombrePuesto = reader["nombrePuesto"].ToString()
+                                };
+
+                                puestos.Add(puesto);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error al cargar puestos: " + ex.Message);
+                // Considerar un manejo de errores más robusto, como registrar en un archivo o base de datos
+            }
+
+            return View(puestos); // Pasar la lista de puestos a la vista
+        }*/
+
         public ActionResult registroEmpleado()
+        {
+            RegistroEmpleadoViewModel viewModel = new RegistroEmpleadoViewModel
+            {
+                Puestos = new List<Puesto>(),
+                Roles = new List<Rol>()
+            };
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    // Cargar puestos
+                    using (SqlCommand cmd = new SqlCommand("sp_LeerTodosPuestos", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Puesto puesto = new Puesto
+                                {
+                                    idPuesto = Convert.ToInt32(reader["idPuesto"]),
+                                    nombrePuesto = reader["nombrePuesto"].ToString()
+                                };
+
+                                viewModel.Puestos.Add(puesto);
+                            }
+                        }
+                    }
+
+                    // Cargar roles
+                    using (SqlCommand cmd = new SqlCommand("sp_LeerTodosRoles", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Rol rol = new Rol
+                                {
+                                    idRol = Convert.ToInt32(reader["idRol"]),
+                                    nombreRol = reader["nombreRol"].ToString()
+                                };
+
+                                viewModel.Roles.Add(rol);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error al cargar datos: " + ex.Message);
+                // Considerar un manejo de errores más robusto, como registrar en un archivo o base de datos
+            }
+
+            return View(viewModel); // Pasar el ViewModel a la vista
+        }
+        [HttpPost]
+        public ActionResult registroEmpleado(RegistroEmpleadoViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Registrar los datos que se enviarán
+                    Debug.WriteLine("idEmpleado: " + model.idEmpleado);
+                    Debug.WriteLine("NombreCompleto: " + model.NombreCompleto);
+                    Debug.WriteLine("ApellidosCompletos: " + model.ApellidosCompletos);
+                    Debug.WriteLine("CorreoElectronico: " + model.CorreoElectronico);
+                    Debug.WriteLine("Telefono: " + model.Telefono);
+                    Debug.WriteLine("nombrePuesto: " + model.nombrePuesto);
+                    Debug.WriteLine("FechaIngreso: " + model.FechaIngreso);
+                    Debug.WriteLine("nombreRol: " + model.nombreRol);
+
+                    using (SqlConnection conn = new SqlConnection(connectionString))
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_InsertarEmpleado", conn))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@idEmpleado", model.idEmpleado);
+                            cmd.Parameters.AddWithValue("@nombre", model.NombreCompleto);
+                            cmd.Parameters.AddWithValue("@apellidos", model.ApellidosCompletos);
+                            cmd.Parameters.AddWithValue("@correo", model.CorreoElectronico);
+                            cmd.Parameters.AddWithValue("@telefono", model.Telefono);
+                            cmd.Parameters.AddWithValue("@nombrePuesto", model.nombrePuesto);
+                            cmd.Parameters.AddWithValue("@fechaIngreso", model.FechaIngreso);
+                            cmd.Parameters.AddWithValue("@nombreRol", model.nombreRol);
+
+                            SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                            {
+                                Direction = ParameterDirection.Output
+                            };
+                            cmd.Parameters.Add(mensajeParam);
+
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+                            conn.Close();
+
+                            string mensaje = mensajeParam.Value.ToString();
+                            if (mensaje.Contains("exitosamente"))
+                            {
+                                ViewBag.Mensaje = mensaje;
+                                ViewBag.AlertType = "success"; // Tipo de alerta para mensajes de éxito
+                            }
+                            else
+                            {
+                                ViewBag.Mensaje = mensaje;
+                                ViewBag.AlertType = "danger"; // Tipo de alerta para mensajes de error
+                            }
+                        }
+                    }
+
+                    return View("registroEmpleado", model);
+                }
+                catch (Exception ex)
+                {
+                    // Registrar el mensaje de la excepción y la traza de pila
+                    Debug.WriteLine("Error al registrar empleado: " + ex.Message);
+                    Debug.WriteLine("Stack Trace: " + ex.StackTrace);
+
+                    ViewBag.Mensaje = "Error al registrar empleado: " + ex.Message;
+                    ViewBag.AlertType = "danger"; // Tipo de alerta para mensajes de error
+                }
+            }
+
+            return View("registroEmpleado", model);
+        }
+
+
+        public ActionResult Login()
         {
             return View();
         }
 
-        public ActionResult login()
+        [HttpPost]
+        public ActionResult Login(LoginViewModel model)
         {
-            return View();
+            if (ModelState.IsValid)
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_VerificarLogin", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Agregar parámetros
+                        cmd.Parameters.AddWithValue("@usuario", model.Usuario);
+                        cmd.Parameters.AddWithValue("@contraseña", model.Contraseña);
+
+                        // Parámetros de salida
+                        SqlParameter rolParam = new SqlParameter("@rol", SqlDbType.NVarChar, 50)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        cmd.Parameters.Add(rolParam);
+
+                        SqlParameter estadoParam = new SqlParameter("@estadoCre", SqlDbType.Bit)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        cmd.Parameters.Add(estadoParam);
+
+                        SqlParameter mensajeParam = new SqlParameter("@mensaje", SqlDbType.NVarChar, 100)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        cmd.Parameters.Add(mensajeParam);
+
+                        try
+                        {
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+
+                            // Obtener los valores de salida
+                            string rol = rolParam.Value.ToString();
+                            bool estadoCre = (bool)estadoParam.Value;
+                            string mensaje = mensajeParam.Value.ToString();
+
+                            // Mostrar valores de salida para depuración
+                            Debug.WriteLine($"Valor devuelto para @rol: {rol}");
+                            Debug.WriteLine($"Valor devuelto para @estadoCre: {estadoCre}");
+                            Debug.WriteLine($"Valor devuelto para @mensaje: {mensaje}");
+
+                            if (estadoCre)
+                            {
+                                // Redirigir a la vista correspondiente basado en el rol
+                                if (rol == "EMPLEADO")
+                                {
+                                    return RedirectToAction("DashboardInicioEmp");
+                                }
+                                else if (rol == "SUPERVISOR")
+                                {
+                                    return RedirectToAction("DashboardInicioSup");
+                                }
+                                else if (rol == "JEFE")
+                                {
+                                    return RedirectToAction("DashboardInicioJef");
+                                }
+                                // Añadir más roles si es necesario
+                            }
+                            else
+                            {
+                                // Mostrar mensaje de error
+                                ViewBag.Message = mensaje;
+                                ViewBag.AlertType = "danger";
+                                return View(model);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Manejo de excepciones y errores
+                            ViewBag.Message = "Ocurrió un error al procesar su solicitud.";
+                            ViewBag.AlertType = "danger";
+                            Debug.WriteLine($"Error: {ex.Message}");
+                            return View(model);
+                        }
+                    }
+                }
+            }
+
+            // Si el modelo no es válido, regresa a la vista con el modelo actual
+            return View(model);
         }
+
+
+        public ActionResult horarios()
+        {
+            List<UsuarioViewModel> usuarios = new List<UsuarioViewModel>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_ObtenerUsuarios", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            usuarios.Add(new UsuarioViewModel
+                            {
+                                idEmpleado = reader["idEmpleado"].ToString(),
+                                NombreCompleto = reader["NombreCompleto"].ToString(),
+                                Puesto = reader["Puesto"].ToString(),
+                                FechaIngreso = Convert.ToDateTime(reader["FechaIngreso"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return View(usuarios);
+        }
+
+
 
     }
 }

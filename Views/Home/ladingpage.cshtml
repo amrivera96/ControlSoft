@@ -11,7 +11,7 @@
     <!-- Metadatos esenciales -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title</title>
+    <title>Control de Actividades</title>
 
     <!-- CSS Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -33,17 +33,17 @@
     <header class="header">
         <div class="container vh-50">
             <!-- Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light d-flex text-dark align-items-center">
+            <nav class="navbar navbar-expand-lg navbar-light text-dark align-items-center">
                 <!-- Logo -->
                 <a class="navbar-brand" href="#">
                     <img src="~/Content/images/logo.svg" alt="Logo" class="img-logo" style="width: 50px;">
                 </a>
-                <!-- Bot�n de colapso -->
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <!-- Botón de colapso -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <!-- Men� -->
-                <div class="collapse navbar-collapse d-flex justify-content-center flex-grow-1" id="navbarNav">
+                <!-- Menú -->
+                <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
                             <a class="nav-link" href="#">Home</a>
@@ -61,7 +61,7 @@
                             <a class="nav-link" href="#">Contacto</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="~/Home/login">
+                            <a class="nav-link" href="#">
                                 <i class="fas fa-user" style="color: #5e58f8;"></i>
                             </a>
                         </li>
@@ -74,36 +74,36 @@
             <div class="row align-items-center justify-content-center h-100 mt-custom">
                 <div class="col-md-6">
                     <!-- Imagen -->
-                    <img src="~/Content/images/img-1-sec-1.png" class="img-fluid" alt="Descripci�n de la imagen">
+                    <img src="~/Content/images/img-1-sec-1.png" class="img-fluid" alt="Descripción de la imagen">
                 </div>
                 <div class="col-md-6 text-dark pt-5 text-center text-md-start">
-                    <!-- T�tulo -->
+                    <!-- Título -->
                     <h1 class="text-capitalize">
                         <span class="back h2">Bienvenidos <span class="text-lowercase">a</span> </span>
                         <strong class="text-bold text-custom-color">ControlSoftCR</strong>
                     </h1>
-                    <!-- Descripci�n -->
-                    <p class="h6">Gesti�n de tiempo eficiente, �xito constante.</p>
-                    <!-- Bot�n -->
+                    <!-- Descripción -->
+                    <p class="h6">Gestión de tiempo eficiente, éxito constante.</p>
+                    <!-- Botón -->
                     <div class="servi">
-                        <a href="~/Home/login" class="btn btn-warning btn-custom-color">Ingresar Ahora</a>
+                        <a href="#" class="btn btn-warning btn-custom-color">Ingresar Ahora</a>
                     </div>
                 </div>
             </div>
         </div>
-        <img src="~/Content/images/cut-header.svg" alt="">
+        <img src="~/Content/images/cut-header.svg" class="imagen">
 
     </header>
 
 
-    <!-- Secci�n de Servicios -->
+    <!-- Sección de Servicios -->
     <section class="containerSection">
         <div class="container">
             <div class="row">
-                <!-- Textos de secci�n -->
+                <!-- Textos de sección -->
                 <div class="col-12 text-center">
                     <h2 class="text-custom-color text-uppercase h2">Elige tu plan</h2>
-                    <h4>R�pidez, Inteligente & Grandes Soluciones</h4>
+                    <h4>Rápidez, Inteligente & Grandes Soluciones</h4>
                 </div>
             </div>
             <div class="row">
@@ -112,7 +112,7 @@
                     <div class="card text-center">
                         <img src="~/Content/images/basico.JPG" alt="basico" class="card-img card-img-filter">
                         <div class="card-img-overlay text-white d-flex flex-column justify-content-center">
-                            <h4>B�sico</h4>
+                            <h4>Básico</h4>
                             <h1 class="tex-bold">$29.00</h1>
                             <p>Finance</p>
                             <p>Risk Management</p>
@@ -154,7 +154,7 @@
         </div>
     </section>
 
-    <!-- Secci�n de Comentarios de Clientes -->
+    <!-- Sección de Comentarios de Clientes -->
     <section class="comments">
         <img src="~/Content/images/cut-header.svg" alt="" class="transform-turn">
         <div class="container">
@@ -183,7 +183,7 @@
                             <div class="col-12 col-md-8">
                                 <blockquote class="text-white text-center">
                                     <img src="~/Content/images/john-doe.jpeg" alt="Jane Doe" class="comments__img">
-                                    <p>"Excelente para mantener la consistencia de nuestra marca. Gesti�n centralizada y an�lisis en tiempo real. Muy �til para fortalecer nuestra identidad."</p>
+                                    <p>"Excelente para mantener la consistencia de nuestra marca. Gestión centralizada y análisis en tiempo real. Muy útil para fortalecer nuestra identidad."</p>
                                     <footer class="blockquote-footer text-white text-center"><cite>Leonel Solano</cite></footer>
                                 </blockquote>
                             </div>
@@ -195,7 +195,7 @@
                             <div class="col-12 col-md-8">
                                 <blockquote class="text-white text-center">
                                     <img src="~/Content/images/john-doe.jpeg" alt="Another Person" class="comments__img">
-                                    <p>"Organiza perfectamente los recursos de dise�o. Ahorra tiempo y facilita la colaboraci�n. Integraci�n perfecta con nuestras herramientas de dise�o. Muy recomendable."</p>
+                                    <p>"Organiza perfectamente los recursos de diseño. Ahorra tiempo y facilita la colaboración. Integración perfecta con nuestras herramientas de diseño. Muy recomendable."</p>
                                     <footer class="blockquote-footer text-white text-center"><cite>Carlos Mendez</cite></footer>
                                 </blockquote>
                             </div>
@@ -214,21 +214,21 @@
         </div>
     </section>
 
-    <!-- Secci�n de Contacto -->
+    <!-- Sección de Contacto -->
     <section>
         <div class="container">
             <div class="row align-items-center justify-content-center">
                 <div class="col-md-6 text-dark pt-5">
-                    <!-- Informaci�n de contacto y formulario -->
+                    <!-- Información de contacto y formulario -->
                     <h1 class="text-capitalize text-center">
                         <strong class="text-bold text-dark">Contacto</strong>
                     </h1>
                     <div class="card border-0 mb-4">
                         <div class="card-body">
                             <p class="card-text text-center">
-                                <strong>Tel�fono:</strong> 123-456-7890<br>
+                                <strong>Teléfono:</strong> 123-456-7890<br>
                                 <strong>Email:</strong> info@controlsoftcr.com<br>
-                                <strong>Direcci�n:</strong> Avenida del Comercio, Cartago, Costa Rica
+                                <strong>Dirección:</strong> Avenida del Comercio, Cartago, Costa Rica
                             </p>
                             <!-- Formulario de contacto -->
                             <form>
@@ -252,13 +252,13 @@
 
                 <!-- Imagen de contacto -->
                 <div class="col-md-6">
-                    <img src="~/Content/images/img-2-sec-2.png" class="img-fluid" alt="Descripci�n de la imagen">
+                    <img src="~/Content/images/img-2-sec-2.png" class="img-fluid" alt="Descripción de la imagen">
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Pie de p�gina -->
+    <!-- Pie de página -->
     <footer class="bg-dark text-white">
         <div class="container">
             <div class="row align-items-center">
@@ -268,7 +268,7 @@
                 </a>
                 <!-- Derechos reservados y redes sociales -->
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">� 2024 ControlSoftCR. Todos los derechos reservados.</p>
+                    <p class="mb-0">© 2024 ControlSoftCR. Todos los derechos reservados.</p>
                 </div>
                 <div class="col-md-3 text-center text-md-end">
                     <!-- Redes Sociales -->
@@ -287,9 +287,10 @@
 
     <!-- JavaScript Bootstrap Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="./js/scripts.js"></script>
+    <script src="~/Content/js/scripts.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 
 </body>
 
 </html>
+
