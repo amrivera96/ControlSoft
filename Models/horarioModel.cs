@@ -13,7 +13,12 @@ namespace ControlSoft.Models
         public string Puesto { get; set; }
         public DateTime FechaIngreso { get; set; }
     }
- 
+
+    public class TurnoTrabajo
+    {
+        public int IdTurno { get; set; }
+        public string TurnoDescripcion { get; set; }
+    }
 
 
 

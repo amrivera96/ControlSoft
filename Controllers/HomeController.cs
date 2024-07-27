@@ -637,8 +637,214 @@ namespace ControlSoft.Controllers
 
             return View(usuarios);
         }
+        public JsonResult ObtenerTurnosTrabajo()
+        {
+            List<TurnoTrabajo> turnos = new List<TurnoTrabajo>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("sp_ObtenerTurnosTrabajo", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                conn.Open();
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    TurnoTrabajo turno = new TurnoTrabajo
+                    {
+                        IdTurno = reader.GetInt32(reader.GetOrdinal("idTurno")),
+                        TurnoDescripcion = reader.GetString(reader.GetOrdinal("TurnoDescripcion"))
+                    };
+                    turnos.Add(turno);
+                }
+            }
+
+            return Json(turnos, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult registrarDepartamento()
+        {
+            return View();
+        }
+
+        
 
 
+        public ActionResult turnos()
+        {
+            return View();
+        }
+        public JsonResult ObtenerDepartamentos()
+            {
+                List<DepartamentoViewModel> departamentos = new List<DepartamentoViewModel>();
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    string query = "SELECT nombreDep FROM Departamentos"; // Asegúrate de que el nombre de columna es correcto
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var departamento = new DepartamentoViewModel
+                                {
+                                    nombreDep = reader["nombreDep"].ToString() // Asegúrate de que esto coincide con el nombre de columna
+                                };
+                                departamentos.Add(departamento);
+
+                                // Agregar Debug.WriteLine para depuración
+                                Debug.WriteLine($"Departamento: {departamento.nombreDep}");
+                            }
+                        }
+                    }
+                }
+
+                // Verificar el contenido completo de la lista para depuración
+                foreach (var dep in departamentos)
+                {
+                    Debug.WriteLine($"Departamento en la lista: {dep.nombreDep}");
+                }
+
+                return Json(departamentos, JsonRequestBehavior.AllowGet);
+            }
+
+
+        public ActionResult registrarPuesto()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult registrarPuesto(PuestoViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Registrar los datos que se enviarán
+                    Debug.WriteLine("NombrePuesto: " + model.NombrePuesto);
+                    Debug.WriteLine("EstadoPuesto: " + model.EstadoPuesto);
+                    Debug.WriteLine("SalarioHora: " + model.SalarioHora);
+                    Debug.WriteLine("NombreDepartamento: " + model.NombreDepartamento);
+
+                    using (SqlConnection conn = new SqlConnection(connectionString))
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_InsertarPuesto", conn))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@nombrePuesto", model.NombrePuesto);
+                            cmd.Parameters.AddWithValue("@estadoPuesto", model.EstadoPuesto);
+                            cmd.Parameters.AddWithValue("@SalHora", model.SalarioHora);
+                            cmd.Parameters.AddWithValue("@nombreDepartamento", model.NombreDepartamento);
+
+                            SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 100)
+                            {
+                                Direction = ParameterDirection.Output
+                            };
+                            cmd.Parameters.Add(mensajeParam);
+
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+                            conn.Close();
+
+                            string mensaje = mensajeParam.Value.ToString();
+                            if (mensaje.Contains("correctamente"))
+                            {
+                                ViewBag.Mensaje = mensaje;
+                                ViewBag.AlertType = "success"; // Tipo de alerta para mensajes de éxito
+                            }
+                            else
+                            {
+                                ViewBag.Mensaje = mensaje;
+                                ViewBag.AlertType = "danger"; // Tipo de alerta para mensajes de error
+                            }
+                        }
+                    }
+
+                    // Volver a cargar los departamentos
+                    //model.Departamentos = ObtenerDepartamentos();
+
+                    return View("registrarPuesto", model);
+                }
+                catch (Exception ex)
+                {
+                    // Registrar el mensaje de la excepción y la traza de pila
+                    Debug.WriteLine("Error al registrar puesto: " + ex.Message);
+                    Debug.WriteLine("Stack Trace: " + ex.StackTrace);
+
+                    ViewBag.Mensaje = "Error al registrar puesto: " + ex.Message;
+                    ViewBag.AlertType = "danger"; // Tipo de alerta para mensajes de error
+
+                    // Volver a cargar los departamentos en caso de error
+                    //model.Departamentos = ObtenerDepartamentos();
+                }
+            }
+
+            // Volver a cargar los departamentos en caso de que el modelo no sea válido
+            //model.Departamentos = ObtenerDepartamentos();
+            return View("registrarPuesto", model);
+        }
+        [HttpPost]
+        public ActionResult registrarDepartamento(DepartamentosViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(connectionString))
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_InsertarDepartamento", conn))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@nombreDep", model.NombreDep);
+                            cmd.Parameters.AddWithValue("@correoDep", model.CorreoDep);
+                            cmd.Parameters.AddWithValue("@telefonoDep", model.TelefonoDep);
+                            cmd.Parameters.AddWithValue("@estadoDep", model.EstadoDep);
+                            cmd.Parameters.AddWithValue("@idJefe", model.IdJefe);
+
+                            SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 100)
+                            {
+                                Direction = ParameterDirection.Output
+                            };
+                            cmd.Parameters.Add(mensajeParam);
+
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+                            conn.Close();
+
+                            string mensaje = mensajeParam.Value.ToString();
+                            if (mensaje.Contains("correctamente"))
+                            {
+                                ViewBag.Mensaje = mensaje;
+                                ViewBag.AlertType = "success"; // Tipo de alerta para mensajes de éxito
+                            }
+                            else
+                            {
+                                ViewBag.Mensaje = mensaje;
+                                ViewBag.AlertType = "danger"; // Tipo de alerta para mensajes de error
+                            }
+                        }
+                    }
+
+                    return View("registrarDepartamento", model);
+                }
+                catch (Exception ex)
+                {
+                    // Registrar el mensaje de la excepción y la traza de pila
+                    Debug.WriteLine("Error al registrar departamento: " + ex.Message);
+                    Debug.WriteLine("Stack Trace: " + ex.StackTrace);
+
+                    ViewBag.Mensaje = "Error al registrar departamento: " + ex.Message;
+                    ViewBag.AlertType = "danger"; // Tipo de alerta para mensajes de error
+                }
+            }
+
+            return View("registrarDepartamento", model);
+        }
 
     }
+
 }

@@ -131,8 +131,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\departamentosModels.cs" />
     <Compile Include="Models\horarioModel.cs" />
     <Compile Include="Models\loginGeneral.cs" />
+    <Compile Include="Models\puestosModels.cs" />
     <Compile Include="Models\RegistroEmpleados.cs" />
     <Compile Include="Models\RegistroInconsistencia.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -221,6 +223,9 @@
     <Content Include="Views\Home\JustificarInconsistenciaEmp.cshtml" />
     <Content Include="Views\Home\BandejaInconsistenciasJefe.cshtml" />
     <Content Include="Views\Home\horarios.cshtml" />
+    <Content Include="Views\Home\registrarDepartamento.cshtml" />
+    <Content Include="Views\Home\registrarPuesto.cshtml" />
+    <Content Include="Views\Home\turnos.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
