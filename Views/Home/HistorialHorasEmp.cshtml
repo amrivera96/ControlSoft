@@ -1,7 +1,7 @@
-﻿@model IEnumerable<ControlSoft.Models.RegistroInconsistencia>
+﻿@model IEnumerable<ControlSoft.Models.HistorialHoras>
 
 @{
-    ViewBag.Title = "BandejaInconsistenciasJefe";
+    ViewBag.Title = "Historial de Horas Extra";
     Layout = null;
 }
 
@@ -55,28 +55,20 @@
 
                 <div class="col-md-8 text-dark pt-5">
                     <div class="container position-relative mt-5">
-                        <h2 class="header-title">Gestión de Inconsistencias</h2>
-
-                        @if (TempData["Mensaje"] != null)
-                        {
-                            var tipoMensaje = TempData["TipoMensaje"] != null ? TempData["TipoMensaje"].ToString() : "info";
-                            var alertClass = tipoMensaje == "success" ? "alert-success" : "alert-danger";
-                            <div class="alert @alertClass">@TempData["Mensaje"]</div>
-                        }
-
+                        <h2 class="header-title">Bandeja de Solicitudes Horas Extra</h2>
                         <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="searchInput" onkeyup="filterTable()" placeholder="Buscar por nombre del empleado">
+                            <input id="searchInput" type="text" class="form-control" placeholder="Buscar por actividad">
+                            <button class="btn btn-outline-secondary" type="button" onclick="filterTable()">Buscar</button>
                         </div>
-
                         <div class="table-responsive table-container">
-                            <table class="table table-bordered" id="inconsistenciasTable">
+                            <table class="table table-bordered" id="tablaSolicitudes">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ID Inco.</th>
-                                        <th>Tipo de inconsistencia</th>
-                                        <th>Fecha Incon.</th>
-                                        <th>Empleado</th>
-                                        <th>Estado Inco.</th>
+                                        <th>ID Solic.</th>
+                                        <th>Actividad</th>
+                                        <th>Cant. horas</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Solicitud</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -84,16 +76,13 @@
                                     @foreach (var item in Model)
                                     {
                                         <tr>
-                                            <td>@item.idInconsistencia</td>
-                                            <td>@item.nombreTipoInconsistencia</td>
-                                            <td>@item.fechaInconsistencia.ToString("dd/MM/yyyy")</td>
-                                            <td>@item.nombreEmpleado</td>
-                                            <td>@(item.estadoInconsistencia ? "Gestionada" : "Sin Gestionar")</td>
+                                            <td>@item.idSolicitud</td>
+                                            <td>@item.Actividad</td>
+                                            <td>@item.cantidadHoras</td>
+                                            <td>@item.Estado</td>
+                                            <td>@item.fechaSolicitud.ToString("dd/MM/yyyy")</td>
                                             <td>
-                                                @if (!item.Gestion.estadoGestion)
-                                                {
-                                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#gestionModal_@item.idInconsistencia">Gestionar</button>
-                                                }
+                                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#aprobarHorasModal_@item.idSolicitud">Aprobar</button>
                                             </td>
                                         </tr>
                                     }
@@ -110,49 +99,44 @@
         <img src="~/Content/images/cut-header.svg" alt="">
     </header>
 
-    <!-- Modal para gestión de inconsistencias -->
+    <!-- Modal para aprobación de horas -->
     @foreach (var item in Model)
     {
-        <div class="modal fade" id="gestionModal_@item.idInconsistencia" tabindex="-1" aria-labelledby="gestionModalLabel_@item.idInconsistencia" aria-hidden="true">
+        <div class="modal fade" id="aprobarHorasModal_@item.idSolicitud" tabindex="-1" aria-labelledby="aprobarHorasModalLabel_@item.idSolicitud" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="gestionModalLabel_@item.idInconsistencia">Gestión de Inconsistencia</h5>
+                        <h5 class="modal-title" id="aprobarHorasModalLabel_@item.idSolicitud">Aprobación de Horas Extra</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form action="@Url.Action("GestionInconsistenciasJefe", "Home")" method="post">
+                        <form action="@Url.Action("AprobarSolicitudHoras", "Home")" method="post">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" id="idInconsistencia" name="idInconsistencia" value="@item.idInconsistencia" />
-                            <input type="hidden" id="estadoGestion" name="estadoGestion" value="true" />
+                            <input type="hidden" id="idSolicitud" name="idSolicitud" value="@item.idSolicitud" />
                             <div class="form-group mb-3">
-                                <label for="fechaInconsistencia">FECHA DE LA INCONSISTENCIA:</label>
-                                <input type="text" class="form-control" id="fechaInconsistencia" name="fechaInconsistencia" value="@item.fechaInconsistencia.ToString("dd/MM/yyyy")" readonly>
+                                <label for="idSolicitud">ID Solicitud:</label>
+                                <input type="text" class="form-control" id="idSolicitud" name="idSolicitud" value="@item.idSolicitud" readonly>
                             </div>
                             <div class="form-group mb-3">
-                                <label for="tipoInconsistencia">TIPO DE INCONSISTENCIA:</label>
-                                <input type="text" class="form-control" id="tipoInconsistencia" name="tipoInconsistencia" value="@item.nombreTipoInconsistencia" readonly>
+                                <label for="Actividad">Actividad:</label>
+                                <input type="text" class="form-control" id="Actividad" name="Actividad" value="@item.Actividad" readonly>
                             </div>
                             <div class="form-group mb-3">
-                                <label for="empleadoIncons">EMPLEADO INCONSISTENCIA:</label>
-                                <input type="text" class="form-control" id="empleadoIncons" name="empleadoIncons" value="@item.nombreEmpleado" readonly>
+                                <label for="cantidadHoras">Cantidad de horas:</label>
+                                <input type="text" class="form-control" id="cantidadHoras" name="cantidadHoras" value="@item.cantidadHoras" readonly>
                             </div>
                             <div class="form-group mb-3">
-                                <label for="justificacion">JUSTIFICACIÓN DE LA INCONSISTENCIA:</label>
-                                <textarea class="form-control" id="justificacion" name="justificacion" rows="2" readonly>@(item.Justificacion != null ? item.Justificacion.descripcionJustificacion : "N/A")</textarea>
-                                @if (item.Justificacion != null && item.Justificacion.adjuntoJustificacion != null)
-                                {
-                                    <a href="@Url.Action("DownloadAdjunto", "Home", new { idJustificacion = item.Justificacion.idJustificacion })" class="btn btn-secondary mt-2">Descargar Adjunto</a>
-                                }
+                                <label for="fechaSolicitada">Fecha solicitada a trabajar:</label>
+                                <input type="text" class="form-control" id="fechaSolicitada" name="fechaSolicitada" value="@item.fechaSolicitada.ToString("dd/MM/yyyy")" readonly>
                             </div>
                             <div class="form-group mb-3">
-                                <label for="observacion">REALIZAR OBSERVACIÓN:</label>
-                                <textarea class="form-control" id="observacion" name="observacionGestion" rows="2"></textarea>
+                                <label for="motivoSolicitud">Motivo de la solicitud:</label>
+                                <textarea class="form-control" id="motivoSolicitud" name="motivoSolicitud" rows="3" readonly>@item.motivoSolicitud</textarea>
                             </div>
                             <div class="form-group mt-4 d-flex justify-content-between">
-                                <button type="submit" name="estadoInconsistencia" value="true" class="btn btn-success">APROBAR</button>
-                                <button type="submit" name="estadoInconsistencia" value="false" class="btn btn-danger">RECHAZAR</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">CERRAR</button>
+                                <button type="submit" name="estadoAproHoras" value="true" class="btn btn-success">APROBAR</button>
+                                <button type="submit" name="estadoAproHoras" value="false" class="btn btn-danger">RECHAZAR</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">REGRESAR</button>
                             </div>
                         </form>
                     </div>
@@ -163,19 +147,18 @@
 
     <!-- JavaScript Bootstrap Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Content/js/scripts.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-
-    <!-- Script para filtrar la tabla -->
     <script>
         function filterTable() {
             var input, filter, table, tr, td, i, txtValue;
             input = document.getElementById("searchInput");
             filter = input.value.toLowerCase();
-            table = document.getElementById("inconsistenciasTable");
+            table = document.getElementById("tablaSolicitudes");
             tr = table.getElementsByTagName("tr");
 
             for (i = 1; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td")[3]; // Columna del nombre del empleado
+                td = tr[i].getElementsByTagName("td")[1];
                 if (td) {
                     txtValue = td.textContent || td.innerText;
                     if (txtValue.toLowerCase().indexOf(filter) > -1) {

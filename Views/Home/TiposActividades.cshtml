@@ -1,6 +1,7 @@
-﻿@model List<ControlSoft.Models.TiposInconsistencias>
+﻿@model List<ControlSoft.Models.TiposActividades>
+
 @{
-    ViewBag.Title = "TiposInconsistencia";
+    ViewBag.Title = "TiposActividades";
     Layout = null;
 }
 
@@ -70,31 +71,33 @@
 
                 <div class="col-md-8 text-dark pt-5">
                     <div class="container position-relative mt-5">
-                        <h2 class="header-title">Tipos de Inconsistencias</h2>
+                        <h2 class="header-title">Tipos de Actividades</h2>
 
-                        @using (Html.BeginForm("CrearTipoInconsistencia", "Home", FormMethod.Post))
+                        @using (Html.BeginForm("CrearActividad", "Home", FormMethod.Post))
                         {
                             <div class="input-group mb-3">
-                                <input type="text" name="nombreInconsistencia" class="form-control" placeholder="Nombre inconsistencia" required>
-                                <input type="text" name="descInconsistencia" class="form-control" placeholder="Descripción" required>
+                                <input type="text" name="nombreAct" class="form-control" placeholder="Nombre de la actividad" required>
+                                <input type="text" name="descpAct" class="form-control" placeholder="Descripción" required>
                                 <div class="input-group-text">
-                                    <input type="checkbox" name="estadoTipoInconsistencia" value="true" class="form-check-input" checked> Activa
+                                    <input type="checkbox" name="estadoAct" value="true" class="form-check-input" checked> Activa
                                 </div>
-                                <input type="hidden" name="fechaCreacion" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                                <button class="btn btn-primary ms-2" type="submit">Añadir inconsistencia</button>
+                                <button class="btn btn-primary ms-2" type="submit">Añadir actividad</button>
                             </div>
                         }
 
                         @if (TempData["Mensaje"] != null)
                         {
-                            <div class="alert alert-info">@TempData["Mensaje"]</div>
+                            var mensajeTipo = TempData["MensajeTipo"] != null && TempData["MensajeTipo"].ToString() == "exito" ? "alert-success" : "alert-danger";
+                            <div class="alert @mensajeTipo">@TempData["Mensaje"]</div>
                         }
 
                         <div class="table-responsive table-container">
                             <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Tipo de inconsistencia</th>
+                                        <th>ID activ.</th>
+                                        <th>Tipo de actividad</th>
+                                        <th>Descripción</th>
                                         <th>Fecha creación</th>
                                         <th>Estado</th>
                                         <th>Acción</th>
@@ -104,22 +107,24 @@
                                     @foreach (var item in Model)
                                     {
                                         <tr>
-                                            <td>@item.nombreInconsistencia</td>
+                                            <td>@item.idAct</td>
+                                            <td>@item.nombreAct</td>
+                                            <td>@item.descpAct</td>
                                             <td>@item.fechaCreacion.ToString("dd/MM/yyyy")</td>
-                                            <td>@(item.estadoTipoInconsistencia ? "Activa" : "Desactivada")</td>
+                                            <td>@(item.estadoAct ? "Activa" : "Desactivada")</td>
                                             <td>
                                                 <div class="d-flex justify-content-center">
-                                                    @using (Html.BeginForm("ActivarDesactivarTipoInconsistencia", "Home", FormMethod.Post))
+                                                    @using (Html.BeginForm("ActivarDesactivarActividad", "Home", FormMethod.Post))
                                                     {
-                                                        <input type="hidden" name="idTipoInconsistencia" value="@item.idTipoInconsistencia" />
-                                                        <input type="hidden" name="nuevoEstado" value="@(item.estadoTipoInconsistencia ? "false" : "true")" />
-                                                        <button class="btn @(item.estadoTipoInconsistencia ? "btn-deactivate" : "btn-activate") btn-sm me-1" type="submit">
-                                                            @(item.estadoTipoInconsistencia ? "Desactivar" : "Activar")
+                                                        <input type="hidden" name="idAct" value="@item.idAct" />
+                                                        <input type="hidden" name="nuevoEstado" value="@(item.estadoAct ? "false" : "true")" />
+                                                        <button class="btn @(item.estadoAct ? "btn-deactivate" : "btn-activate") btn-sm me-1" type="submit">
+                                                            @(item.estadoAct ? "Desactivar" : "Activar")
                                                         </button>
                                                     }
-                                                    @using (Html.BeginForm("EliminarTipoInconsistencia", "Home", FormMethod.Post))
+                                                    @using (Html.BeginForm("EliminarActividad", "Home", FormMethod.Post))
                                                     {
-                                                        <input type="hidden" name="idTipoInconsistencia" value="@item.idTipoInconsistencia" />
+                                                        <input type="hidden" name="idAct" value="@item.idAct" />
                                                         <button class="btn btn-delete btn-sm" type="submit">Borrar</button>
                                                     }
                                                 </div>

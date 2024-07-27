@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using ControlSoft.Models;
@@ -14,6 +15,16 @@ namespace ControlSoft.Controllers
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ControlSoftCrDbContext"].ConnectionString;
 
+        // Acción para simular el inicio de sesión
+        public ActionResult Login()
+        {
+            // Simular el inicio de sesión y establecer el ID del empleado en la sesión
+            int idEmpleado = 301230123; // Supongamos que es 1
+            Session["idEmpleado"] = idEmpleado;
+
+            // Redirigir a la página de DashboardInicioEmp
+            return RedirectToAction("DashboardInicioEmp");
+        }
 
         // Acción para mostrar la vista de tipos de inconsistencias
         public ActionResult TiposInconsistencia()
@@ -36,7 +47,7 @@ namespace ControlSoft.Controllers
                                 idTipoInconsistencia = Convert.ToInt32(reader["idTipoInconsistencia"]),
                                 nombreInconsistencia = reader["nombreInconsistencia"].ToString(),
                                 descInconsistencia = reader["descInconsistencia"].ToString(),
-                                estadoTipoInconsistencia = Convert.ToBoolean(reader["estadoTipoInconsistencia"]),
+                                estadoTipoInconsistencia = Convert.ToBoolean(reader["estadoTipoInconsistencia"]), // Corrección aquí
                                 fechaCreacion = Convert.ToDateTime(reader["fechaCreacion"])
                             };
 
@@ -73,7 +84,7 @@ namespace ControlSoft.Controllers
 
                         conn.Open();
                         cmd.ExecuteNonQuery();
-                        ViewBag.Mensaje = mensajeParam.Value.ToString();
+                        TempData["Mensaje"] = mensajeParam.Value.ToString();
                     }
                 }
             }
@@ -100,7 +111,7 @@ namespace ControlSoft.Controllers
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    ViewBag.Mensaje = mensajeParam.Value.ToString();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
                 }
             }
 
@@ -127,16 +138,24 @@ namespace ControlSoft.Controllers
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    ViewBag.Mensaje = mensajeParam.Value.ToString();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
                 }
             }
 
             return RedirectToAction("TiposInconsistencia");
         }
 
-        // Acción para ver las inconsistencias del empleado
+
+        // Acción para mostrar el historial de inconsistencias del empleado
         public ActionResult HistorialInconsistenciasEmp()
         {
+            // Asumimos que el idEmpleado es 1 si no está en la sesión
+            if (Session["idEmpleado"] == null)
+            {
+                Session["idEmpleado"] = 301230123;
+            }
+
+            int idEmpleado = Convert.ToInt32(Session["idEmpleado"]); // Obtener el idEmpleado de la sesión
             List<RegistroInconsistencia> inconsistencias = new List<RegistroInconsistencia>();
 
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -144,6 +163,7 @@ namespace ControlSoft.Controllers
                 using (SqlCommand cmd = new SqlCommand("sp_LeerTodosLosRegistrosInconsistencias", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado); // Pasar el idEmpleado como parámetro
                     conn.Open();
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -155,10 +175,20 @@ namespace ControlSoft.Controllers
                                 idInconsistencia = Convert.ToInt32(reader["idInconsistencia"]),
                                 idEmpleado = Convert.ToInt32(reader["idEmpleado"]),
                                 idTipoInconsistencia = Convert.ToInt32(reader["idTipoInconsistencia"]),
+                                nombreTipoInconsistencia = reader["nombreInconsistencia"].ToString(), // Asumimos que la consulta devuelve este campo
                                 fechaInconsistencia = Convert.ToDateTime(reader["fechaInconsistencia"]),
                                 estadoInconsistencia = Convert.ToBoolean(reader["estadoInconsistencia"]),
                                 idJustificacion = reader["idJustificacion"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["idJustificacion"]),
-                                estadoJustificacion = reader["estadoJustificacion"] == DBNull.Value ? (bool?)null : Convert.ToBoolean(reader["estadoJustificacion"])
+                                estadoJustificacion = reader["estadoJustificacion"] == DBNull.Value ? (bool?)null : Convert.ToBoolean(reader["estadoJustificacion"]),
+                                Justificacion = reader["idJustificacion"] == DBNull.Value ? null : new JustificacionInconsistencia
+                                {
+                                    idJustificacion = Convert.ToInt32(reader["idJustificacion"]),
+                                    idInconsistencia = Convert.ToInt32(reader["idInconsistencia"]),
+                                    estadoJustificacion = Convert.ToBoolean(reader["estadoJustificacion"]),
+                                    fechaJustificacion = reader["fechaJustificacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["fechaJustificacion"]),
+                                    descripcionJustificacion = reader["descripcionJustificacion"].ToString(),
+                                    adjuntoJustificacion = reader["adjuntoJustificacion"] == DBNull.Value ? null : (byte[])reader["adjuntoJustificacion"]
+                                }
                             };
 
                             inconsistencias.Add(inconsistencia);
@@ -170,7 +200,6 @@ namespace ControlSoft.Controllers
             return View(inconsistencias);
         }
 
-        // Acción para justificar la inconsistencia del empleado
         [HttpPost]
         public ActionResult JustificarInconsistenciaEmp(int idInconsistencia, string descripcionJustificacion, HttpPostedFileBase adjuntoJustificacion)
         {
@@ -178,6 +207,16 @@ namespace ControlSoft.Controllers
 
             if (adjuntoJustificacion != null && adjuntoJustificacion.ContentLength > 0)
             {
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx" };
+                var extension = Path.GetExtension(adjuntoJustificacion.FileName).ToLower();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    TempData["Mensaje"] = "Tipo de archivo no permitido. Por favor, suba un archivo PDF, JPG, JPEG, PNG, DOC o DOCX.";
+                    TempData["TipoMensaje"] = "danger";
+                    return RedirectToAction("HistorialInconsistenciasEmp");
+                }
+
                 using (var binaryReader = new BinaryReader(adjuntoJustificacion.InputStream))
                 {
                     fileBytes = binaryReader.ReadBytes(adjuntoJustificacion.ContentLength);
@@ -198,8 +237,16 @@ namespace ControlSoft.Controllers
                     adjuntoParam.Value = fileBytes ?? (object)DBNull.Value;
                     cmd.Parameters.Add(adjuntoParam);
 
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
                     conn.Open();
                     cmd.ExecuteNonQuery();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
+                    TempData["TipoMensaje"] = "success"; // Añadimos un indicador de tipo de mensaje
                 }
             }
 
@@ -227,10 +274,12 @@ namespace ControlSoft.Controllers
                                 idInconsistencia = Convert.ToInt32(reader["idInconsistencia"]),
                                 idEmpleado = Convert.ToInt32(reader["idEmpleado"]),
                                 idTipoInconsistencia = Convert.ToInt32(reader["idTipoInconsistencia"]),
+                                nombreTipoInconsistencia = reader["nombreInconsistencia"].ToString(),
                                 fechaInconsistencia = Convert.ToDateTime(reader["fechaInconsistencia"]),
                                 estadoInconsistencia = Convert.ToBoolean(reader["estadoInconsistencia"]),
                                 idJustificacion = reader["idJustificacion"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["idJustificacion"]),
                                 estadoJustificacion = reader["estadoJustificacion"] == DBNull.Value ? (bool?)null : Convert.ToBoolean(reader["estadoJustificacion"]),
+                                nombreEmpleado = reader["nombreEmpleado"].ToString(), // Aquí asignamos el nombre del empleado
                                 Gestion = new GestionInconsistencia
                                 {
                                     idGestion = Convert.ToInt32(reader["idGestion"]),
@@ -239,6 +288,15 @@ namespace ControlSoft.Controllers
                                     estadoGestion = Convert.ToBoolean(reader["estadoGestion"]),
                                     idJefe = reader["idJefe"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["idJefe"]),
                                     observacionGestion = reader["observacionGestion"].ToString()
+                                },
+                                Justificacion = reader["idJustificacion"] == DBNull.Value ? null : new JustificacionInconsistencia
+                                {
+                                    idJustificacion = Convert.ToInt32(reader["idJustificacion"]),
+                                    idInconsistencia = Convert.ToInt32(reader["idInconsistencia"]),
+                                    estadoJustificacion = Convert.ToBoolean(reader["estadoJustificacion"]),
+                                    fechaJustificacion = reader["fechaJustificacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["fechaJustificacion"]),
+                                    descripcionJustificacion = reader["descripcionJustificacion"].ToString(),
+                                    adjuntoJustificacion = reader["adjuntoJustificacion"] == DBNull.Value ? null : (byte[])reader["adjuntoJustificacion"]
                                 }
                             };
 
@@ -251,6 +309,7 @@ namespace ControlSoft.Controllers
             return View(inconsistencias);
         }
 
+        // Acción para gestionar las inconsistencias de los empleados
         [HttpPost]
         public ActionResult GestionInconsistenciasJefe(int idInconsistencia, bool estadoInconsistencia, string observacionGestion)
         {
@@ -266,13 +325,629 @@ namespace ControlSoft.Controllers
                     cmd.Parameters.AddWithValue("@observacionGestion", observacionGestion);
                     cmd.Parameters.AddWithValue("@estadoInconsistencia", estadoInconsistencia); // Agregamos el estado de inconsistencia
 
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
                     conn.Open();
                     cmd.ExecuteNonQuery();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
+                    TempData["TipoMensaje"] = estadoInconsistencia ? "success" : "danger"; // Mensaje verde si es aprobado y rojo si es rechazado
                 }
             }
 
             return RedirectToAction("BandejaInconsistenciasJefe");
         }
+
+        //Descargar el adjunto 
+        public ActionResult DownloadAdjunto(int idJustificacion)
+        {
+            byte[] fileContent;
+            string fileName;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "SELECT adjuntoJustificacion FROM JustificacionInconsistencia WHERE idJustificacion = @idJustificacion";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idJustificacion", idJustificacion);
+                    conn.Open();
+
+                    fileContent = cmd.ExecuteScalar() as byte[];
+                }
+
+                if (fileContent == null)
+                {
+                    return HttpNotFound();
+                }
+            }
+
+            fileName = $"adjunto_{idJustificacion}.pdf"; // Cambia la extensión según el tipo de archivo que esperas
+
+            return File(fileContent, "application/octet-stream", fileName);
+        }
+
+        // Acción para mostrar la vista de registro de actividades
+        public ActionResult TiposActividades()
+        {
+            List<TiposActividades> actividades = new List<TiposActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosTipoActividades", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            TiposActividades actividad = new TiposActividades
+                            {
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                nombreAct = reader["nombreAct"].ToString(),
+                                descpAct = reader["descpAct"].ToString(),
+                                fechaCreacion = Convert.ToDateTime(reader["fechaCreacion"]),
+                                estadoAct = Convert.ToBoolean(reader["estadoAct"])
+                            };
+
+                            actividades.Add(actividad);
+                        }
+                    }
+                }
+            }
+
+            return View(actividades);
+        }
+
+        // Acción para crear una nueva actividad
+        [HttpPost]
+        public ActionResult CrearActividad(TiposActividades actividad)
+        {
+            if (ModelState.IsValid)
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_CrearTipoActividad", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@nombreAct", actividad.nombreAct);
+                        cmd.Parameters.AddWithValue("@descpAct", actividad.descpAct);
+                        cmd.Parameters.AddWithValue("@fechaCreacion", DateTime.Now);  // Fecha de creación automática
+                        cmd.Parameters.AddWithValue("@estadoAct", actividad.estadoAct);
+
+                        SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        cmd.Parameters.Add(mensajeParam);
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        TempData["Mensaje"] = mensajeParam.Value.ToString();
+                        TempData["MensajeTipo"] = "exito"; // Mensaje de éxito
+                    }
+                }
+            }
+            else
+            {
+                TempData["Mensaje"] = "Error: Datos inválidos.";
+                TempData["MensajeTipo"] = "error"; // Mensaje de error
+            }
+
+            return RedirectToAction("TiposActividades");
+        }
+
+        // Acción para eliminar una actividad
+        [HttpPost]
+        public ActionResult EliminarActividad(int idAct)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_DeleteTipoActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
+                    TempData["MensajeTipo"] = "exito"; // Mensaje de éxito
+                }
+            }
+
+            return RedirectToAction("TiposActividades");
+        }
+
+        // Acción para activar/desactivar una actividad
+        [HttpPost]
+        public ActionResult ActivarDesactivarActividad(int idAct, bool nuevoEstado)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_ActivarDesactivarTipoActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+                    cmd.Parameters.AddWithValue("@nuevoEstado", nuevoEstado);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    TempData["Mensaje"] = mensajeParam.Value.ToString();
+                    TempData["MensajeTipo"] = "exito"; // Mensaje de éxito
+                }
+            }
+
+            return RedirectToAction("TiposActividades");
+        }
+
+
+        // Acción para mostrar la vista de registro de actividades
+        public ActionResult RegistrarActividadDiariaEmp()
+        {
+            int idEmpleado = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301230123;
+
+            var viewModel = new RegistrarActividadViewModel
+            {
+                TiposActividades = ObtenerTiposActividades(),
+                RegistroActividades = ObtenerRegistroActividades(),
+                IdEmpleado = idEmpleado
+            };
+
+            return View(viewModel);
+        }
+
+        //Metodo para obtener lista de actividades por hacer
+        private List<TiposActividades> ObtenerTiposActividades()
+        {
+            List<TiposActividades> actividades = new List<TiposActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosTipoActividades", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            TiposActividades actividad = new TiposActividades
+                            {
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                nombreAct = reader["nombreAct"].ToString(),
+                                descpAct = reader["descpAct"].ToString(),
+                                fechaCreacion = Convert.ToDateTime(reader["fechaCreacion"]),
+                                estadoAct = Convert.ToBoolean(reader["estadoAct"])
+                            };
+
+                            actividades.Add(actividad);
+                        }
+                    }
+                }
+            }
+
+            return actividades;
+        }
+
+        // Acción para crear un nuevo registro de actividad
+        [HttpPost]
+        public ActionResult CrearRegistroActividad(int idAct, TimeSpan horaInicio, TimeSpan horaFinal)
+        {
+            int idEmp = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301230123;
+            DateTime fechaAct = DateTime.Now.Date; // Establecer la fecha actual
+            string mensaje = string.Empty;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_CrearRegistroActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+                    cmd.Parameters.AddWithValue("@idEmp", idEmp);
+                    cmd.Parameters.AddWithValue("@fechaAct", fechaAct);
+                    cmd.Parameters.AddWithValue("@horaInicio", horaInicio);
+                    cmd.Parameters.AddWithValue("@horaFinal", horaFinal);
+                    cmd.Parameters.AddWithValue("@estadoReg", 0);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    mensaje = mensajeParam.Value.ToString();
+                }
+            }
+
+            TempData["Mensaje"] = mensaje; // Usar TempData para pasar el mensaje a la vista
+            return RedirectToAction("RegistrarActividadDiariaEmp");
+        }
+
+
+
+        //Metodo para obtener el registro de las actividades
+        private List<RegistroActividades> ObtenerRegistroActividades()
+        {
+            List<RegistroActividades> registroActividades = new List<RegistroActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerTodosRegistroActividades", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            RegistroActividades registro = new RegistroActividades
+                            {
+                                idRegAct = Convert.ToInt32(reader["idRegAct"]),
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                idEmp = Convert.ToInt32(reader["idEmp"]),
+                                fechaAct = Convert.ToDateTime(reader["fechaAct"]),
+                                horaInicio = (TimeSpan)reader["horaInicio"],
+                                horaFinal = (TimeSpan)reader["horaFinal"],
+                                duracionAct = (TimeSpan)reader["duracionAct"],
+                                estadoReg = Convert.ToBoolean(reader["estadoReg"]),
+                                Actividad = new TiposActividades
+                                {
+                                    idAct = Convert.ToInt32(reader["idAct"]),
+                                    nombreAct = reader["nombreAct"].ToString() // Asegúrate de que este campo existe en la consulta SQL
+                                }
+                            };
+
+                            registroActividades.Add(registro);
+                        }
+                    }
+                }
+            }
+
+            return registroActividades;
+        }
+
+
+        //Mostrar bandeja de actividades del jefe
+        public ActionResult BandejaActividadesJefe()
+        {
+            int idJefe = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301240124;
+            List<RegistroActividades> actividades = new List<RegistroActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerRegistroActividadesJefe", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idJefe", idJefe);
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            RegistroActividades actividad = new RegistroActividades
+                            {
+                                idRegAct = Convert.ToInt32(reader["idRegAct"]),
+                                idGesAct = Convert.ToInt32(reader["idGesAct"]),
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                idEmp = Convert.ToInt32(reader["idEmp"]),
+                                nombreEmpleado = reader["nombreEmpleado"].ToString(), // Capturar el nombre del empleado
+                                fechaAct = Convert.ToDateTime(reader["fechaAct"]),
+                                horaInicio = (TimeSpan)reader["horaInicio"],
+                                horaFinal = (TimeSpan)reader["horaFinal"],
+                                duracionAct = (TimeSpan)reader["duracionAct"],
+                                estadoReg = Convert.ToBoolean(reader["estadoReg"]),
+                                Actividad = new TiposActividades
+                                {
+                                    nombreAct = reader["nombreAct"].ToString()
+                                }
+                            };
+
+                            actividades.Add(actividad);
+                        }
+                    }
+                }
+            }
+
+            return View(actividades);
+        }
+
+        //Pantalla para gestionar las actividades
+        [HttpPost]
+        public ActionResult GestionarActividad(int idGesAct, string obserGest, bool estadoGesAct)
+        {
+            int idJefe = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301240124; // Asegurando que el idJefe se toma de la sesión o asigna un valor por defecto
+            string mensaje = string.Empty;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_GestionarActividad", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idGesAct", idGesAct);
+                    cmd.Parameters.AddWithValue("@fechaGesAct", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@obserGest", obserGest);
+                    cmd.Parameters.AddWithValue("@estadoGesAct", estadoGesAct);
+                    cmd.Parameters.AddWithValue("@idJefe", idJefe);
+
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                    mensaje = mensajeParam.Value.ToString();
+                }
+            }
+
+            TempData["Mensaje"] = mensaje; // Usar TempData para pasar el mensaje a la vista
+            return RedirectToAction("BandejaActividadesJefe");
+        }
+
+
+
+
+        //Pantalla para monitorear el rendimiento del empleado en vista jefe
+        public ActionResult MonitoreoRendimientoJefe()
+        {
+            List<MonitoreoRendimiento> monitoreo = new List<MonitoreoRendimiento>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerMonitoreoRendimientoJefe", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            MonitoreoRendimiento rendimiento = new MonitoreoRendimiento
+                            {
+                                idEmp = Convert.ToInt32(reader["idEmp"]),
+                                nombre = reader["nombre"].ToString(),
+                                fechaAct = Convert.ToDateTime(reader["fechaAct"]),
+                                TotalActividades = Convert.ToInt32(reader["TotalActividades"]),
+                                ActividadesAprobadas = Convert.ToInt32(reader["ActividadesAprobadas"]),
+                                ActividadesRechazadas = Convert.ToInt32(reader["ActividadesRechazadas"]),
+                                TotalHoras = Convert.ToDouble(reader["TotalHoras"]),
+                                TiempoPromedioPorActividad = Convert.ToDouble(reader["TiempoPromedioPorActividad"])
+                            };
+
+                            monitoreo.Add(rendimiento);
+                        }
+                    }
+                }
+            }
+
+            return View(monitoreo);
+        }
+
+        // Acción para mostrar el historial de horas extras
+        public ActionResult HistorialHorasJefe()
+        {
+            List<HistorialHoras> solicitudes = ObtenerHistorialHorasEmp();
+            ViewBag.Empleados = ObtenerEmpleados();
+            ViewBag.Actividades = ObtenerActividades();
+            return View(solicitudes);
+        }
+
+        // Acción para crear una nueva solicitud de horas extra
+        [HttpPost]
+        public ActionResult CrearSolicitudHoras(int idEmpleado, int idAct, decimal cantidadHoras, DateTime fechaSolicitada, string motivoSolicitud)
+        {
+            int idJefe = 1; // Asume que el ID del jefe es 1 para simplificar
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_CrearSolicitudHoras", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@fechaSolicitud", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@idJefe", idJefe);
+                    cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
+                    cmd.Parameters.AddWithValue("@idAct", idAct);
+                    cmd.Parameters.AddWithValue("@cantidadHoras", cantidadHoras);
+                    cmd.Parameters.AddWithValue("@fechaSolicitada", fechaSolicitada);
+                    cmd.Parameters.AddWithValue("@motivoSolicitud", motivoSolicitud);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToAction("HistorialHorasJefe");
+        }
+
+        // Acción para mostrar el historial de horas extras
+        public ActionResult HistorialHorasEmp()
+        {
+            List<HistorialHoras> solicitudes = ObtenerHistorialHorasEmp();
+            ViewBag.Empleados = ObtenerEmpleados();
+            ViewBag.Actividades = ObtenerActividades();
+            return View(solicitudes);
+        }
+
+        // Acción para aprobar una solicitud de horas extra
+        [HttpPost]
+        public ActionResult AprobarSolicitudHoras(int idSolicitud)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("UPDATE AprobacionHoras SET estadoAproHoras = 1, fechaAproHoras = @fechaAproHoras WHERE idSolicitud = @idSolicitud", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@idSolicitud", idSolicitud);
+                    cmd.Parameters.AddWithValue("@fechaAproHoras", DateTime.Now);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                using (SqlCommand cmd = new SqlCommand("UPDATE SolicitudHoras SET estadoSolicitudHoras = 1 WHERE idSolicitud = @idSolicitud", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@idSolicitud", idSolicitud);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToAction("HistorialHorasEmp");
+        }
+
+        // Acción para rechazar una solicitud de horas extra
+        [HttpPost]
+        public ActionResult RechazarSolicitudHoras(int idSolicitud)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("UPDATE AprobacionHoras SET estadoAproHoras = 0, fechaAproHoras = @fechaAproHoras WHERE idSolicitud = @idSolicitud", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@idSolicitud", idSolicitud);
+                    cmd.Parameters.AddWithValue("@fechaAproHoras", DateTime.Now);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                using (SqlCommand cmd = new SqlCommand("UPDATE SolicitudHoras SET estadoSolicitudHoras = 0 WHERE idSolicitud = @idSolicitud", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@idSolicitud", idSolicitud);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToAction("HistorialHorasEmp");
+        }
+
+        private List<HistorialHoras> ObtenerHistorialHorasEmp()
+        {
+            List<HistorialHoras> solicitudes = new List<HistorialHoras>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_LeerHistorialHorasEmp", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            HistorialHoras solicitud = new HistorialHoras
+                            {
+                                idSolicitud = Convert.ToInt32(reader["idSolicitud"]),
+                                Empleado = reader["Empleado"].ToString(),
+                                Actividad = reader["Actividad"].ToString(),
+                                cantidadHoras = Convert.ToDecimal(reader["cantidadHoras"]),
+                                Estado = reader["Estado"].ToString(),
+                                fechaSolicitada = Convert.ToDateTime(reader["fechaSolicitada"]),
+                                fechaSolicitud = Convert.ToDateTime(reader["fechaSolicitud"]),
+                                motivoSolicitud = reader["motivoSolicitud"].ToString()
+                            };
+
+                            solicitudes.Add(solicitud);
+                        }
+                    }
+                }
+            }
+
+            return solicitudes;
+        }
+
+        //Metodo para obtener empleados
+        private List<Empleado> ObtenerEmpleados()
+        {
+            List<Empleado> empleados = new List<Empleado>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SELECT idEmpleado, nombre, apellidos FROM Empleado", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Empleado empleado = new Empleado
+                            {
+                                idEmpleado = Convert.ToInt32(reader["idEmpleado"]),
+                                nombre = reader["nombre"].ToString(),
+                                apellidos = reader["apellidos"].ToString()
+                            };
+
+                            empleados.Add(empleado);
+                        }
+                    }
+                }
+            }
+
+            return empleados;
+        }
+
+        //Metodo para obtener actividades
+        private List<TiposActividades> ObtenerActividades()
+        {
+            List<TiposActividades> actividades = new List<TiposActividades>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SELECT idAct, nombreAct FROM TiposActividades", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            TiposActividades actividad = new TiposActividades
+                            {
+                                idAct = Convert.ToInt32(reader["idAct"]),
+                                nombreAct = reader["nombreAct"].ToString()
+                            };
+
+                            actividades.Add(actividad);
+                        }
+                    }
+                }
+            }
+
+            return actividades;
+        }
+
+
         public ActionResult shared()
         {
             return View();
@@ -325,4 +1000,5 @@ namespace ControlSoft.Controllers
         }
 
     }
+
 }
