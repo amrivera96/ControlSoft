@@ -652,6 +652,7 @@ namespace ControlSoft.Controllers
                                 idGesAct = Convert.ToInt32(reader["idGesAct"]),
                                 idAct = Convert.ToInt32(reader["idAct"]),
                                 idEmp = Convert.ToInt32(reader["idEmp"]),
+                                nombreEmpleado = reader["nombreEmpleado"].ToString(), // Capturar el nombre del empleado
                                 fechaAct = Convert.ToDateTime(reader["fechaAct"]),
                                 horaInicio = (TimeSpan)reader["horaInicio"],
                                 horaFinal = (TimeSpan)reader["horaFinal"],
@@ -676,7 +677,8 @@ namespace ControlSoft.Controllers
         [HttpPost]
         public ActionResult GestionarActividad(int idGesAct, string obserGest, bool estadoGesAct)
         {
-            int idJefe = 301240124; // Este valor debería ser dinámico, dependiendo del jefe autenticado
+            int idJefe = Session["idEmpleado"] != null ? (int)Session["idEmpleado"] : 301240124; // Asegurando que el idJefe se toma de la sesión o asigna un valor por defecto
+            string mensaje = string.Empty;
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
@@ -689,13 +691,22 @@ namespace ControlSoft.Controllers
                     cmd.Parameters.AddWithValue("@estadoGesAct", estadoGesAct);
                     cmd.Parameters.AddWithValue("@idJefe", idJefe);
 
+                    SqlParameter mensajeParam = new SqlParameter("@Mensaje", SqlDbType.NVarChar, 1000)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(mensajeParam);
+
                     conn.Open();
                     cmd.ExecuteNonQuery();
+                    mensaje = mensajeParam.Value.ToString();
                 }
             }
 
+            TempData["Mensaje"] = mensaje; // Usar TempData para pasar el mensaje a la vista
             return RedirectToAction("BandejaActividadesJefe");
         }
+
 
 
 
