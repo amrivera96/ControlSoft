@@ -173,6 +173,7 @@
     <Content Include="Content\images\MEDIOHEADER.svg" />
     <Content Include="Content\images\MEDIOHEADER2.svg" />
     <Content Include="Content\images\[removal.ai]_898d7477-a899-4639-8e9e-a35e3f9bdf15-imga.png" />
+    <Content Include="Content\js\scripts - Busqueda.js" />
     <Content Include="Content\js\scripts.js" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
@@ -204,11 +205,6 @@
     <Content Include="Views\Home\DashboardInicioEmp.cshtml" />
     <Content Include="Views\Home\DashboardInicioJef.cshtml" />
     <Content Include="Views\Home\DashboardInicioSup.cshtml" />
-    <Content Include="Views\Home\SolicPermisos.cshtml" />
-    <Content Include="Views\Home\SolicHorasExtra.cshtml" />
-    <Content Include="Views\Home\ladingpage.cshtml" />
-    <Content Include="Views\Home\login.cshtml" />
-    <Content Include="Views\Home\registroEmpleado.cshtml" />
     <Content Include="Views\Home\HistorialInconsistenciasEmp.cshtml" />
     <Content Include="Respaldos\GestionInconsistenciasJefe.cshtml" />
     <Content Include="Views\Home\TiposInconsistencia.cshtml" />
@@ -217,6 +213,10 @@
     <Content Include="Views\Home\RegistrarActividadDiariaEmp.cshtml" />
     <Content Include="Views\Home\TiposActividades.cshtml" />
     <Content Include="Views\Home\BandejaActividadesJefe.cshtml" />
+    <Content Include="Views\Home\MonitoreoRendimientoJefe.cshtml" />
+    <Content Include="Views\Home\HistorialHorasJefe.cshtml" />
+    <Content Include="Views\Home\View.cshtml" />
+    <Content Include="Views\Home\HistorialHorasEmp.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

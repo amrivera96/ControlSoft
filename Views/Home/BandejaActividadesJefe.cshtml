@@ -38,50 +38,59 @@
                 </div>
             </nav>
 
+            <!-- Contenido principal -->
             <div class="row align-items-center justify-content-center h-100 mt-custom">
-                <div class="container position-relative mt-5">
-                    <h2 class="header-title">Actividades empleados</h2>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Escriba el nombre del empleado">
-                        <button class="btn btn-outline-secondary" type="button">Buscar</button>
-                    </div>
-                    <div class="table-responsive table-container">
-                        <table class="table table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID Empleado</th>
-                                    <th>Fecha Registro</th>
-                                    <th>Estado</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.GroupBy(a => new { a.idEmp, a.fechaAct }))
-                                {
-                                    var firstItem = item.First();
+                <div class="col-md-4">
+                    <!-- Imagen -->
+                    <img src="~/Content/images/[removal.ai]_898d7477-a899-4639-8e9e-a35e3f9bdf15-imga.png" class="img-fluid" alt="Descripción de la imagen" style="max-width: 80%; height: auto; margin-top: 50px;">
+                </div>
+
+                <div class="col-md-8 text-dark pt-5">
+                    <div class="container position-relative mt-5">
+                        <h2 class="header-title">Gestión de Actividades</h2>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Escriba el nombre del empleado">
+                            <button class="btn btn-outline-secondary" type="button">Buscar</button>
+                        </div>
+                        <div class="table-responsive table-container">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
                                     <tr>
-                                        <td>@firstItem.idEmp</td>
-                                        <td>@firstItem.fechaAct.ToString("dd/MM/yyyy")</td>
-                                        <td>@(firstItem.estadoReg ? "Gestionado" : "Sin Gestionar")</td>
-                                        <td>
-                                            @if (!firstItem.estadoReg)
-                                            {
-                                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#gestionModal_@firstItem.idEmp@firstItem.fechaAct.ToString("yyyyMMdd")">Gestionar</button>
-                                            }
-                                        </td>
+                                        <th>ID Empleado</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Estado</th>
+                                        <th>Acción</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-3">
-                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">Regresar</a>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.GroupBy(a => new { a.idEmp, a.fechaAct }))
+                                    {
+                                        var firstItem = item.First();
+                                        <tr>
+                                            <td>@firstItem.idEmp</td>
+                                            <td>@firstItem.fechaAct.ToString("dd/MM/yyyy")</td>
+                                            <td>@(firstItem.estadoReg ? "Gestionado" : "Sin Gestionar")</td>
+                                            <td>
+                                                @if (!firstItem.estadoReg)
+                                                {
+                                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#gestionModal_@firstItem.idEmp@firstItem.fechaAct.ToString("yyyyMMdd")">Gestionar</button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">Regresar</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        <img src="~/Content/images/cut-header.svg" alt="">
     </header>
-
+    <!-- Modal para gestión de actividades -->
     @foreach (var group in Model.GroupBy(a => new { a.idEmp, a.fechaAct }))
     {
         var firstItem = group.First();

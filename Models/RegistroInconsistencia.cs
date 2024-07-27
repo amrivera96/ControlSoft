@@ -22,13 +22,16 @@ namespace ControlSoft.Models
         public int idInconsistencia { get; set; }
         public int idEmpleado { get; set; }
         public int idTipoInconsistencia { get; set; }
+        public string nombreTipoInconsistencia { get; set; }
         public DateTime fechaInconsistencia { get; set; }
-        public bool estadoInconsistencia { get; set; } // 0 = No aprobada, 1 = Aprobada
-        public int? idJustificacion { get; set; } // Esta propiedad es nullable porque podría no haber justificación
-        public bool? estadoJustificacion { get; set; } // 0 = No justificada, 1 = Justificada
-        public GestionInconsistencia Gestion { get; set; } // Agregamos la propiedad de gestión
-        public JustificacionInconsistencia Justificacion { get; set; } // Agregamos la propiedad de justificación
+        public bool estadoInconsistencia { get; set; }
+        public int? idJustificacion { get; set; }
+        public bool? estadoJustificacion { get; set; }
+        public GestionInconsistencia Gestion { get; set; }
+        public JustificacionInconsistencia Justificacion { get; set; }
+        public string nombreEmpleado { get; set; } // Nueva propiedad para el nombre del empleado
     }
+
 
     public class GestionInconsistencia
     {
@@ -85,4 +88,59 @@ namespace ControlSoft.Models
         public bool? estadoGesAct { get; set; }
         public int idJefe { get; set; }
     }
+
+
+    public class MonitoreoRendimiento
+    {
+        public int idEmp { get; set; }
+        public string nombre { get; set; }
+        public DateTime fechaAct { get; set; }
+        public int TotalActividades { get; set; }
+        public int ActividadesAprobadas { get; set; }
+        public int ActividadesRechazadas { get; set; }
+        public double TotalHoras { get; set; }
+        public double TiempoPromedioPorActividad { get; set; }
+    }
+
+    public class SolicitudHoras
+    {
+        public int idSolicitud { get; set; }
+        public DateTime fechaSolicitud { get; set; }
+        public int idJefe { get; set; }
+        public int idEmpleado { get; set; }
+        public int idAct { get; set; }
+        public decimal cantidadHoras { get; set; }
+        public DateTime fechaSolicitada { get; set; }
+        public string motivoSolicitud { get; set; }
+    }
+
+    public class HistorialHoras
+    {
+        public int idSolicitud { get; set; }
+        public string Empleado { get; set; }
+        public string Actividad { get; set; }
+        public decimal cantidadHoras { get; set; }
+        public string Estado { get; set; }
+        public DateTime fechaSolicitud { get; set; }
+        public DateTime fechaSolicitada { get; set; }
+        public string motivoSolicitud { get; set; }
+    }
+
+
+
+    public class Empleado
+    {
+        public int idEmpleado { get; set; }
+        public string nombre { get; set; }
+        public string apellidos { get; set; }
+        public string correo { get; set; }
+        public string telefono { get; set; }
+        public int idPuesto { get; set; }
+        public bool estadoEmp { get; set; }
+        public DateTime fechaIngreso { get; set; }
+    }
+
 }
+
+
+
